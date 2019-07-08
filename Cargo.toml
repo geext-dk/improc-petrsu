@@ -1,0 +1,7 @@
+[package]
+name = "skeletonization-rs"
+version = "0.1.0"
+authors = ["Denis Karpovskiy <geext29@gmail.com>"]
+edition = "2018"
+
+[dependencies]
