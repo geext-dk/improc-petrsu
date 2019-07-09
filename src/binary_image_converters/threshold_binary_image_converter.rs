@@ -1,4 +1,4 @@
-use std::path::Path;
+use image::DynamicImage;
 use crate::image_processer::ImageProcesser;
 
 pub struct ThresholdBinaryImageConverter {
@@ -6,7 +6,7 @@ pub struct ThresholdBinaryImageConverter {
 }
 
 impl ImageProcesser for ThresholdBinaryImageConverter {
-    fn process(image_path: &Path) {
+    fn process(image_path: &DynamicImage) {
         
     }
 }
