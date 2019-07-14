@@ -1,6 +1,8 @@
 use image::GenericImageView;
 use image::Pixel;
+use image::RgbImage;
 use num_traits::Zero;
+use num_traits::Bounded;
 use std::convert::TryInto;
 
 pub struct BinaryImage {
@@ -14,6 +16,21 @@ pub enum PixelColor {
 }
 
 impl BinaryImage {
+    pub fn to_rgb_image(&self) -> RgbImage {
+        let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
+
+        for (x, y) in self.iter() {
+            if self.is_white(x, y) {
+                let pixel = rgb_image.get_pixel_mut(x as u32, y as u32);
+                let max_value = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Bounded>::max_value();
+
+                pixel.apply_with_alpha(|_| max_value, |c| c);
+            }
+        }
+
+        rgb_image
+    }
+    
     pub fn iter(&self) -> PixelIterator {
         PixelIterator::new(self)
     }
