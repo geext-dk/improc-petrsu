@@ -134,5 +134,13 @@ impl Skeletonizer for ZhangSuenSkeletonizer {
                 break;
             }
         }
+
+        for (x, y) in image.iter() {
+            if outer_image.is_black(x + 1, y + 1) {
+                image.set_black(x, y);
+            } else {
+                image.set_white(x, y);
+            }
+        }
     }
 }
