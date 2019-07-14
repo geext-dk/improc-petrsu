@@ -1,12 +1,12 @@
-use image::DynamicImage;
-use crate::image_processer::ImageProcesser;
+// use image::GenericImage;
+// use crate::image_processer::ImageProcesser;
 
-pub struct RosenfeldSkeletonizer {
+// pub struct RosenfeldSkeletonizer {
 
-}
+// }
 
-impl ImageProcesser for RosenfeldSkeletonizer {
-    fn process(image_path: &DynamicImage) {
+// impl<T: GenericImage> ImageProcesser<T> for RosenfeldSkeletonizer {
+//     fn process(image: &mut T) {
 
-    }
-}
+//     }
+// }

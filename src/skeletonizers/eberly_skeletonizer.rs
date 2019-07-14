@@ -1,11 +1,11 @@
-use image::DynamicImage;
-use crate::image_processer::ImageProcesser;
+// use image::GenericImage;
+// use crate::image_processer::ImageProcesser;
 
-pub struct EberlySkeletonizer {
+// pub struct EberlySkeletonizer {
 
-}
+// }
 
-impl ImageProcesser for EberlySkeletonizer {
-    fn process(image_path: &DynamicImage) {
-    }
-}
+// impl<T: GenericImage> ImageProcesser<T> for EberlySkeletonizer {
+//     fn process(image: &T) {
+//     }
+// }

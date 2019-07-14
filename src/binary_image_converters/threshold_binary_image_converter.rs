@@ -1,12 +1,12 @@
-use image::DynamicImage;
-use crate::image_processer::ImageProcesser;
+// use image::GenericImage;
+// use crate::image_processer::ImageProcesser;
 
-pub struct ThresholdBinaryImageConverter {
+// pub struct ThresholdBinaryImageConverter {
 
-}
+// }
 
-impl ImageProcesser for ThresholdBinaryImageConverter {
-    fn process(image_path: &DynamicImage) {
+// impl<T: GenericImage> ImageProcesser<T> for ThresholdBinaryImageConverter {
+//     fn process(image: &T) {
         
-    }
-}
+//     }
+// }
