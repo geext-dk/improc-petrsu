@@ -114,7 +114,7 @@ impl ZhangSuenSkeletonizer {
 }
 
 impl Skeletonizer for ZhangSuenSkeletonizer {
-    fn process(image: &mut BinaryImage) {
+    fn process(&self, image: &mut BinaryImage) {
         let mut outer_image = BinaryImage::new(image.width() + 2, image.height() + 2);
         for (x, y) in image.iter() {
             if image.is_black(x, y) {

@@ -4,5 +4,5 @@ pub mod zhangsuen_skeletonizer;
 use crate::binary_image::BinaryImage;
 
 pub trait Skeletonizer {
-    fn process(binary_image: &mut BinaryImage);
+    fn process(&self, binary_image: &mut BinaryImage);
 }
