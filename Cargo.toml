@@ -1,5 +1,5 @@
 [package]
-name = "skeletonization-rs"
+name = "improc-petrsu"
 version = "0.1.0"
 authors = ["Denis Karpovskiy <geext29@gmail.com>"]
 edition = "2018"
