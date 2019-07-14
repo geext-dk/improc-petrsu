@@ -5,6 +5,10 @@ pub struct ZhangSuenSkeletonizer {
 }
 
 impl ZhangSuenSkeletonizer {
+    pub fn new() -> Self {
+        ZhangSuenSkeletonizer {}
+    }
+    
     fn step_one(image: &mut BinaryImage) -> u32 {
         let mut count = 0;
         let mut marked_pixels = Vec::new();
