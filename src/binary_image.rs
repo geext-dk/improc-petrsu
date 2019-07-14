@@ -83,7 +83,9 @@ impl BinaryImage {
                     c
                 }, |c| c);
                 
-                image[y as usize][x as usize] = PixelColor::White;
+                if !is_zero {
+                    image[y as usize][x as usize] = PixelColor::White;
+                }
             }
         }
 
