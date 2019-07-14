@@ -30,7 +30,7 @@ impl BinaryImage {
 
         rgb_image
     }
-    
+
     pub fn iter(&self) -> PixelIterator {
         PixelIterator::new(self)
     }
@@ -73,17 +73,17 @@ impl BinaryImage {
 
         for y in 0..image_view.height() {
             for x in 0..image_view.width() {
-                let pixel = image_view.get_pixel(x, y);
-                let channels = pixel.channels();
-
-                let zero = &<<T::Pixel as Pixel>::Subpixel as Zero>::zero();
-                for channel in channels {
-                    if channel != zero {
-                        image[y as usize][x as usize] = PixelColor::White;
-                        break;
+                let mut pixel = image_view.get_pixel(x, y);
+                let zero = <<T::Pixel as Pixel>::Subpixel as Zero>::zero();
+                let mut is_zero = true;
+                pixel.apply_with_alpha(|c| {
+                    if c != zero {
+                        is_zero = false;
                     }
-                }
-
+                    c
+                }, |c| c);
+                
+                image[y as usize][x as usize] = PixelColor::White;
             }
         }
 
