@@ -3,6 +3,7 @@ use crate::skeletonizers::AdjacencyMode;
 use crate::skeletonizers::Skeletonizer;
 use crate::bool_matrix::BoolMatrix;
 
+#[derive(PartialEq, Eq)]
 pub enum ProcessingSide
 {
     Up,
@@ -27,7 +28,7 @@ impl RosenfeldSkeletonizer {
             && (image.is_black(x, y) || is_deleted.check(x, y));
     }
 
-    fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide) -> usize {
+    fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide, sides: &[ProcessingSide]) -> usize {
         let amount = 0;
         let change_x = Vec::new();
         let change_y = Vec::new();
@@ -40,22 +41,52 @@ impl RosenfeldSkeletonizer {
             }
 
             match side {
-                ProcessingSide::Up    if self.was_or_is_black(image, is_deleted, x, y - 1) => continue,
-                ProcessingSide::Right if self.was_or_is_black(image, is_deleted, x + 1, y) => continue,
-                ProcessingSide::Down  if self.was_or_is_black(image, is_deleted, x, y + 1) => continue,
-                ProcessingSide::Left  if self.was_or_is_black(image, is_deleted, x - 1, y) => continue,
+                ProcessingSide::Up    if self.was_or_is_black(image, &is_deleted, x, y - 1) => continue,
+                ProcessingSide::Right if self.was_or_is_black(image, &is_deleted, x + 1, y) => continue,
+                ProcessingSide::Down  if self.was_or_is_black(image, &is_deleted, x, y + 1) => continue,
+                ProcessingSide::Left  if self.was_or_is_black(image, &is_deleted, x - 1, y) => continue,
                 _ => ()
             };
-
-                ProcessingSide::Up    if y != 0                  && (image.is_black(x, y - 1) || is_deleted.check(x, y)) => continue,
-                ProcessingSide::Right if x != image.width() - 1  && (image.is_black(x + 1, y) || is_deleted.check(x, y)) => continue,
-                ProcessingSide::Down  if y != image.height() - 1 && (image.is_black(x, y + 1) || is_deleted.check(x, y)) => continue,
-                ProcessingSide::Left  if x != 0                  && (image.is_black(x - 1, y) || is_deleted.check(x, y)) => continue,
-                _ => ()
-            };
-
+            
             let black_count = 0;
 
+            if *side != ProcessingSide::Up && y != 0 && (image.is_black(x, y - 1) || is_deleted.check(x, y - 1)) {
+                black_count += 1;
+            }
+
+            if *side != ProcessingSide::Right && x != image.width() - 1 && (image.is_black(x + 1, y) || is_deleted.check(x + 1, y)) {
+                black_count += 1;
+            }
+
+            if *side != ProcessingSide::Down  && y != image.height() - 1 && (image.is_black(x, y + 1) || is_deleted.check(x, y + 1)) {
+                black_count += 1;
+            }
+
+            if *side != ProcessingSide::Left  && x != 0 && (image.is_black(x - 1, y) || is_deleted.check(x - 1, y)) {
+                black_count += 1;
+            }
+            
+            if self.mode == AdjacencyMode::Eight {
+                if x != 0 && y != 0 && (image.is_black(x - 1, y - 1) || is_deleted.check(x - 1, y - 1)) {
+                    black_count += 1;
+                }
+    
+                if x != image.width() - 1 && y != 0 && (image.is_black(x + 1, y - 1) || is_deleted.check(x + 1, y - 1)) {
+                    black_count += 1;
+                }
+    
+                if x != image.width() - 1 && y != image.height() - 1 && (image.is_black(x + 1, y + 1) || is_deleted.check(x + 1, y + 1)) {
+                    black_count += 1;
+                }
+    
+                if x != 0 && y != image.height() - 1 && (image.is_black(x - 1, y + 1) || is_deleted.check(x - 1, y + 1)) {
+                    black_count += 1;
+                }
+            }
+
+            if black_count < 2 {
+                continue;
+            }
 
         }
 
@@ -71,7 +102,7 @@ impl Skeletonizer for RosenfeldSkeletonizer {
         loop {
             let x = 0;
             for side in &sides {
-                x += self.process_side(image, side);
+                x += self.process_side(image, side, &sides);
             }
         }
     }
