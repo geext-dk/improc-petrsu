@@ -1,8 +1,7 @@
 use crate::binary_image::BinaryImage;
 use crate::skeletonizers::Skeletonizer;
 
-pub struct ZhangSuenSkeletonizer {
-}
+pub struct ZhangSuenSkeletonizer;
 
 impl ZhangSuenSkeletonizer {
     pub fn new() -> Self {
