@@ -2,6 +2,7 @@ use crate::binary_image::BinaryImage;
 use crate::skeletonizers::AdjacencyMode;
 use crate::skeletonizers::Skeletonizer;
 use crate::bool_matrix::BoolMatrix;
+use crate::skeletonizers::is_local_articulation_point;
 
 #[derive(PartialEq, Eq)]
 pub enum ProcessingSide
@@ -24,16 +25,14 @@ impl RosenfeldSkeletonizer {
     }
 
     fn was_or_is_black(&self, image: &BinaryImage, is_deleted: &BoolMatrix, x: usize, y: usize) -> bool {
-        return x >= 0 && x < image.width() && y >= 0 && y < image.height()
+        return x < image.width() && y < image.height()
             && (image.is_black(x, y) || is_deleted.check(x, y));
     }
 
-    fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide, sides: &[ProcessingSide]) -> usize {
-        let amount = 0;
-        let change_x = Vec::new();
-        let change_y = Vec::new();
+    fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide) -> usize {
+        let mut amount = 0;
 
-        let is_deleted = BoolMatrix::new(image.width(), image.height(), false);
+        let mut is_deleted = BoolMatrix::new(image.width(), image.height(), false);
 
         for (x, y) in image.iter() {
             if image.is_white(x, y) {
@@ -48,7 +47,7 @@ impl RosenfeldSkeletonizer {
                 _ => ()
             };
             
-            let black_count = 0;
+            let mut black_count = 0;
 
             if *side != ProcessingSide::Up && y != 0 && (image.is_black(x, y - 1) || is_deleted.check(x, y - 1)) {
                 black_count += 1;
@@ -88,6 +87,11 @@ impl RosenfeldSkeletonizer {
                 continue;
             }
 
+            if !is_local_articulation_point(image, x, y, &self.mode) { 
+                is_deleted.set(x, y);
+                image.set_white(x, y);
+                amount += 1;
+            }
         }
 
         amount
@@ -98,11 +102,14 @@ impl Skeletonizer for RosenfeldSkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
         let sides = [ProcessingSide::Up, ProcessingSide::Right, ProcessingSide::Down, ProcessingSide::Left];
 
-        let i = 0;
         loop {
-            let x = 0;
+            let mut x = 0;
             for side in &sides {
-                x += self.process_side(image, side, &sides);
+                x += self.process_side(image, side);
+            }
+
+            if x == 0 {
+                break;
             }
         }
     }

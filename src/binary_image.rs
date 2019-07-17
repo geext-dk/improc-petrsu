@@ -15,6 +15,7 @@ pub enum PixelColor {
     White
 }
 
+// todo: add unchecked 
 impl BinaryImage {
     pub fn to_rgb_image(&self) -> RgbImage {
         let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
