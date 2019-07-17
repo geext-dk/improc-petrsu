@@ -1,3 +1,4 @@
+mod eberly_interior_algorithms;
 pub mod rosenfeld_skeletonizer;
 pub mod eberly_skeletonizer;
 pub mod zhangsuen_skeletonizer;

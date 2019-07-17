@@ -17,6 +17,23 @@ pub struct RosenfeldSkeletonizer {
     mode: AdjacencyMode
 }
 
+impl Skeletonizer for RosenfeldSkeletonizer {
+    fn process(&self, image: &mut BinaryImage) {
+        let sides = [ProcessingSide::Up, ProcessingSide::Right, ProcessingSide::Down, ProcessingSide::Left];
+
+        loop {
+            let mut x = 0;
+            for side in &sides {
+                x += self.process_side(image, side);
+            }
+
+            if x == 0 {
+                break;
+            }
+        }
+    }
+}
+
 impl RosenfeldSkeletonizer {
     pub fn new(mode: AdjacencyMode) -> Self {
         RosenfeldSkeletonizer {
@@ -95,22 +112,5 @@ impl RosenfeldSkeletonizer {
         }
 
         amount
-    }
-}
-
-impl Skeletonizer for RosenfeldSkeletonizer {
-    fn process(&self, image: &mut BinaryImage) {
-        let sides = [ProcessingSide::Up, ProcessingSide::Right, ProcessingSide::Down, ProcessingSide::Left];
-
-        loop {
-            let mut x = 0;
-            for side in &sides {
-                x += self.process_side(image, side);
-            }
-
-            if x == 0 {
-                break;
-            }
-        }
     }
 }
