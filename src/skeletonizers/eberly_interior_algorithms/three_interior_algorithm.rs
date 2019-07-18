@@ -8,11 +8,11 @@ use crate::skeletonizers::AdjacencyMode;
 pub(crate) struct ThreeInteriorAlgorithm { }
 
 impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
-    fn is_interior(&self, image: &BinaryImage, x: usize, y: usize) -> bool {
-        image.is_black(x, y) && self.count_black_neighbours(image, x, y) == 3
+    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
+        image.is_black(x, y) && Self::count_black_neighbours(image, x, y) == 3
     }
 
-    fn remove_interiors(&self, image: &mut BinaryImage, is_interior: &BoolMatrix) {
+    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
             if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
                 image.set_white(x, y);
@@ -22,11 +22,7 @@ impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
 }
 
 impl ThreeInteriorAlgorithm {
-    pub(crate) fn new() -> Self {
-        ThreeInteriorAlgorithm { }
-    }
-    
-    fn count_black_neighbours(&self, image: &BinaryImage, x: usize, y: usize) -> usize {
+    fn count_black_neighbours(image: &BinaryImage, x: usize, y: usize) -> usize {
         let mut count = 0;
         let x_offsets = [1, 2, 1, 0];
         let y_offsets = [0, 1, 2, 1];

@@ -2,10 +2,10 @@ use super::EberlyInteriorAlgorithm;
 use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
 
-pub(crate) struct FourInteriorAlgorithm { }
+pub(crate) struct FourInteriorAlgorithm;
 
 impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
-    fn is_interior(&self, image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
+    fn is_interior(image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
         if x >= image.width() - 1 || y >= image.height() - 1  || x == 0 || y == 0 { 
             false
         } else {
@@ -25,7 +25,7 @@ impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
         }
     }
 
-    fn remove_interiors(&self, image: &mut BinaryImage, is_interior: &BoolMatrix) {
+    fn remove_interiors(_image: &mut BinaryImage, _is_interior: &BoolMatrix) {
         // nothing to do
     }
 }

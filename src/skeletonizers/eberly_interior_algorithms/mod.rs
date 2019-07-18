@@ -5,6 +5,6 @@ pub(crate) mod three_interior_algorithm;
 pub(crate) mod two_interior_algorithm;
 
 pub(crate) trait EberlyInteriorAlgorithm {
-    fn is_interior(&self, image: &BinaryImage, x: usize, y: usize) -> bool;
-    fn remove_interiors(&self, image: &mut BinaryImage, is_interior: &BoolMatrix);
+    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool;
+    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix);
 }

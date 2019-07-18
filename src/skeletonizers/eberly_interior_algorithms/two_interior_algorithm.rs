@@ -46,10 +46,3 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
         }
     }
 }
-
-impl TwoInteriorAlgorithm {
-    pub(crate) fn new() -> Self {
-        TwoInteriorAlgorithm { }
-    }
-    
-}
