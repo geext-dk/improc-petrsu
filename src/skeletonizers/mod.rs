@@ -103,3 +103,7 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
 
     amount
 }
+
+fn is_in_range(value: usize, left: usize, right: usize) -> bool {
+        value >= left && value <= right
+}

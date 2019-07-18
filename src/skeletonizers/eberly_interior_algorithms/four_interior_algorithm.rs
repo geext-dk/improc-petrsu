@@ -2,7 +2,7 @@ use super::EberlyInteriorAlgorithm;
 use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
 
-pub(super) struct FourInteriorAlgorithm { }
+pub(crate) struct FourInteriorAlgorithm { }
 
 impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
     fn is_interior(&self, image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
