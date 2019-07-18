@@ -104,7 +104,7 @@ impl RosenfeldSkeletonizer {
                 continue;
             }
 
-            if !is_local_articulation_point(image, x, y, &self.mode) { 
+            if !is_local_articulation_point(image, x, y, self.mode) { 
                 is_deleted.set(x, y);
                 image.set_white(x, y);
                 amount += 1;

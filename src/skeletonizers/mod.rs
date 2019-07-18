@@ -15,7 +15,7 @@ pub trait Skeletonizer {
     fn process(&self, binary_image: &mut BinaryImage);
 }
 
-fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: &AdjacencyMode) -> bool {
+fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode) -> bool {
     let mut around = BinaryImage::new(3, 3);
     fill_around(&mut around, image, x, y);
 
@@ -47,7 +47,7 @@ fn fill_around(around: &mut BinaryImage, image: &BinaryImage, mut x: usize, mut 
     }
 }
 
-fn count_components(image: &BinaryImage, mode: &AdjacencyMode) -> u32 {
+fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
     let mut amount = 0;
     let mut is_checked = BoolMatrix::new(image.width(), image.height(), false);
     let mut pixels_stack = Vec::new();
@@ -81,7 +81,7 @@ fn count_components(image: &BinaryImage, mode: &AdjacencyMode) -> u32 {
                 pixels_stack.push((next_x, next_y + 1));
             }
 
-            if *mode == AdjacencyMode::Eight {
+            if mode == AdjacencyMode::Eight {
                 if next_x != 0 && next_y != 0 && image.is_black(next_x - 1, next_y - 1) && !is_checked.check(next_x - 1, next_y - 1) {
                     pixels_stack.push((next_x - 1, next_y - 1));
                 }
