@@ -16,7 +16,6 @@ pub trait Skeletonizer {
 }
 
 fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode) -> bool {
-    println!("processing: ({}, {})", x, y);
     let mut around = get_around(image, x, y);
 
     let components = count_components(&around, mode);

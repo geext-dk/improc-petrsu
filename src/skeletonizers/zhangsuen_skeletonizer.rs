@@ -1,12 +1,11 @@
 use crate::binary_image::BinaryImage;
 use crate::skeletonizers::Skeletonizer;
-use crate::PixelColor;
 
 pub struct ZhangSuenSkeletonizer;
 
 impl Skeletonizer for ZhangSuenSkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
-        let mut outer_image = BinaryImage::new(image.width() + 2, image.height() + 2, PixelColor::White);
+        let mut outer_image = BinaryImage::new(image.width() + 2, image.height() + 2, image.get_bg_color());
         for (x, y) in image.iter() {
             if image.is_fg(x, y) {
                 outer_image.set_fg(x + 1, y + 1);
@@ -164,7 +163,22 @@ mod tests {
 
     #[test]
     fn zhangsuen_algorithm_test() {
+        // Arrange
+        let mut image = BinaryImage::new(4, 4, PixelColor::White);
+        image.fill(PixelColor::Black);
+        let skeletonizer = ZhangSuenSkeletonizer::new();
 
+        // Act
+        skeletonizer.process(&mut image);
+
+        // Assert
+        for (x, y) in image.iter() {
+            if x == 1 && y == 1 {
+                assert!(image.is_fg(x, y));
+            } else {
+                assert!(image.is_bg(x, y));
+            }
+        }
     }
 
     #[test]
@@ -232,6 +246,22 @@ mod tests {
 
         // Act
         let count = ZhangSuenSkeletonizer::count_transitions(&image, 1, 1);
+
+        // Assert
+        assert_eq!(4, count);
+    }
+
+    #[test]
+    fn count_black_neighbours_test() {
+        // Arrange
+        let mut image = BinaryImage::new(3, 3, PixelColor::White);
+        image.set_fg(0, 0);
+        image.set_fg(2, 0);
+        image.set_fg(0, 2);
+        image.set_fg(2, 1);
+
+        // Act
+        let count = ZhangSuenSkeletonizer::count_black_neighbours(&image, 1, 1);
 
         // Assert
         assert_eq!(4, count);

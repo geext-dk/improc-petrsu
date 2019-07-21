@@ -239,12 +239,6 @@ mod tests {
         skeletonizer.process(&mut image);
 
         // Assert
-        for y in 0..image.height() {
-            for x in 0..image.width() {
-                print!("{} ", if image.is_fg(x, y) == true { 1 } else { 0 });
-            }
-            println!();
-        }
         for (x, y) in image.iter() {
             if x == 2 && y == 2 {
                 assert!(image.is_fg(x, y));
