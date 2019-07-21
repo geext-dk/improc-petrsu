@@ -1,4 +1,4 @@
-use crate::binary_image::{ BinaryImage, PixelColor };
+use crate::binary_image::BinaryImage;
 use crate::skeletonizers::{ is_local_articulation_point, Skeletonizer, AdjacencyMode };
 use crate::bool_matrix::BoolMatrix;
 
@@ -41,7 +41,7 @@ impl RosenfeldSkeletonizer {
 
     fn was_or_is_black(&self, image: &BinaryImage, is_deleted: &BoolMatrix, x: usize, y: usize) -> bool {
         return x < image.width() && y < image.height()
-            && (image.is_black(x, y) || is_deleted.check(x, y));
+            && (image.is_fg(x, y) || is_deleted.check(x, y));
     }
 
     fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide) -> usize {
@@ -50,7 +50,7 @@ impl RosenfeldSkeletonizer {
         let mut is_deleted = BoolMatrix::new(image.width(), image.height(), false);
 
         for (x, y) in image.iter() {
-            if image.is_white(x, y) {
+            if image.is_bg(x, y) {
                 continue;
             }
 
@@ -64,36 +64,36 @@ impl RosenfeldSkeletonizer {
             
             let mut black_count = 0;
 
-            if *side != ProcessingSide::Up && y != 0 && (image.is_black(x, y - 1) || is_deleted.check(x, y - 1)) {
+            if *side != ProcessingSide::Up && y != 0 && (image.is_fg(x, y - 1) || is_deleted.check(x, y - 1)) {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Right && x != image.width() - 1 && (image.is_black(x + 1, y) || is_deleted.check(x + 1, y)) {
+            if *side != ProcessingSide::Right && x != image.width() - 1 && (image.is_fg(x + 1, y) || is_deleted.check(x + 1, y)) {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Down  && y != image.height() - 1 && (image.is_black(x, y + 1) || is_deleted.check(x, y + 1)) {
+            if *side != ProcessingSide::Down  && y != image.height() - 1 && (image.is_fg(x, y + 1) || is_deleted.check(x, y + 1)) {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Left  && x != 0 && (image.is_black(x - 1, y) || is_deleted.check(x - 1, y)) {
+            if *side != ProcessingSide::Left  && x != 0 && (image.is_fg(x - 1, y) || is_deleted.check(x - 1, y)) {
                 black_count += 1;
             }
             
             if self.mode == AdjacencyMode::Eight {
-                if x != 0 && y != 0 && (image.is_black(x - 1, y - 1) || is_deleted.check(x - 1, y - 1)) {
+                if x != 0 && y != 0 && (image.is_fg(x - 1, y - 1) || is_deleted.check(x - 1, y - 1)) {
                     black_count += 1;
                 }
     
-                if x != image.width() - 1 && y != 0 && (image.is_black(x + 1, y - 1) || is_deleted.check(x + 1, y - 1)) {
+                if x != image.width() - 1 && y != 0 && (image.is_fg(x + 1, y - 1) || is_deleted.check(x + 1, y - 1)) {
                     black_count += 1;
                 }
     
-                if x != image.width() - 1 && y != image.height() - 1 && (image.is_black(x + 1, y + 1) || is_deleted.check(x + 1, y + 1)) {
+                if x != image.width() - 1 && y != image.height() - 1 && (image.is_fg(x + 1, y + 1) || is_deleted.check(x + 1, y + 1)) {
                     black_count += 1;
                 }
     
-                if x != 0 && y != image.height() - 1 && (image.is_black(x - 1, y + 1) || is_deleted.check(x - 1, y + 1)) {
+                if x != 0 && y != image.height() - 1 && (image.is_fg(x - 1, y + 1) || is_deleted.check(x - 1, y + 1)) {
                     black_count += 1;
                 }
             }
@@ -102,10 +102,9 @@ impl RosenfeldSkeletonizer {
                 continue;
             }
 
-            // TODO: Extract foreground color to an option
-            if !is_local_articulation_point(image, x, y, self.mode, PixelColor::Black) { 
+            if !is_local_articulation_point(image, x, y, self.mode) { 
                 is_deleted.set(x, y);
-                image.set_white(x, y);
+                image.set_bg(x, y);
                 amount += 1;
             }
         }

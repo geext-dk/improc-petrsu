@@ -1,4 +1,4 @@
-use crate::binary_image::{ BinaryImage, PixelColor };
+use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
 use crate::skeletonizers::{ is_local_articulation_point, AdjacencyMode, Skeletonizer };
 
@@ -73,7 +73,7 @@ impl EberlySkeletonizer {
         let mut amount = 0;
         for (x, y) in image.iter() {
             if Self::is_boundary(image, x, y, is_interior) {
-                image.set_white(x, y);
+                image.set_bg(x, y);
                 amount += 1;
             }
         }
@@ -82,23 +82,20 @@ impl EberlySkeletonizer {
     }
 
     fn is_boundary(image: &BinaryImage, x: usize, y: usize, is_interior: &BoolMatrix) -> bool {
-        image.is_black(x, y)
+        image.is_fg(x, y)
             && !is_interior.check(x, y)
-            && Self::is_adjacent_to_zero(image, x, y)
+            && Self::is_adjacent_to_bg(image, x, y)
             && Self::is_adjacent_to_interior(image, x, y, is_interior)
-            && is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black)
+            && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
     }
 
-    fn is_adjacent_to_zero(image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
+    fn is_adjacent_to_bg(image: &BinaryImage, x: usize, y: usize) -> bool {
         if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 {
             return true;
         }
 
-        x -= 1;
-        y -= 1;
-
         for i in 0..9 {
-            if image.is_white(x + i % 3, y + i / 3) { 
+            if image.is_bg(x + i % 3 - 1, y + i / 3 - 1) { 
                 return true;
             }
         }
@@ -122,18 +119,15 @@ impl EberlySkeletonizer {
 }
 
 impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
-    fn is_interior(image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
-        if x >= image.width() - 1 || y >= image.height() - 1  || x == 0 || y == 0 { 
+    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
+        if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 { 
             false
         } else {
-            x -= 1;
-            y -= 1;
-
             let x_offset = [1, 2, 0, 1, 1];
             let y_offset = [1, 1, 1, 2, 0];
 
             for i in 0..x_offset.len() {
-                if image.is_white(x + x_offset[i], y + y_offset[i]) {
+                if image.is_bg(x + x_offset[i] - 1, y + y_offset[i] - 1) {
                     return false;
                 }
             }
@@ -149,13 +143,13 @@ impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
 
 impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
     fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
-        image.is_black(x, y) && Self::count_black_neighbours(image, x, y) == 3
+        image.is_fg(x, y) && Self::count_black_neighbours(image, x, y) == 3
     }
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black) {
-                image.set_white(x, y);
+            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+                image.set_bg(x, y);
             }
         }
     }
@@ -173,7 +167,7 @@ impl ThreeInteriorAlgorithm {
 
             if new_x != 0 && new_x - 1 < image.width()
                     && new_y != 0 && new_y - 1 < image.height()
-                    && image.is_black(new_x - 1, new_y - 1) {
+                    && image.is_fg(new_x - 1, new_y - 1) {
                 count += 1;
             }
         }
@@ -184,23 +178,23 @@ impl ThreeInteriorAlgorithm {
 
 impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
     fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
-        if image.is_black(x, y) {
+        if image.is_fg(x, y) {
             let mut horizontal_black_count = 0;
             let mut vertical_black_count = 0;
 
-            if y != 0 && image.is_black(x, y - 1) {
+            if y != 0 && image.is_fg(x, y - 1) {
                 vertical_black_count += 1;
             }
 
-            if x != image.width() - 1 && image.is_black(x + 1, y) {
+            if x != image.width() - 1 && image.is_fg(x + 1, y) {
                 horizontal_black_count += 1;
             }
 
-            if y != image.height() - 1 && image.is_black(x, y + 1) {
+            if y != image.height() - 1 && image.is_fg(x, y + 1) {
                 vertical_black_count += 1
             }
 
-            if x != 0 && image.is_black(x - 1, y) {
+            if x != 0 && image.is_fg(x - 1, y) {
                 horizontal_black_count += 1;
             }
 
@@ -216,8 +210,8 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black) {
-                image.set_white(x, y);
+            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+                image.set_bg(x, y);
             }
         }
     }
@@ -237,18 +231,25 @@ mod tests {
     #[test]
     fn eberly_algorithm_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(4, 4, PixelColor::Black);
+        let mut image = BinaryImage::new(4, 4, PixelColor::White);
+        image.fill(PixelColor::Black);
         let skeletonizer = EberlySkeletonizer::new();
 
         // Act
         skeletonizer.process(&mut image);
 
         // Assert
+        for y in 0..image.height() {
+            for x in 0..image.width() {
+                print!("{} ", if image.is_fg(x, y) == true { 1 } else { 0 });
+            }
+            println!();
+        }
         for (x, y) in image.iter() {
             if x == 2 && y == 2 {
-                assert!(image.is_black(x, y));
+                assert!(image.is_fg(x, y));
             } else {
-                assert!(image.is_white(x, y));
+                assert!(image.is_bg(x, y));
             }
         }
     }
@@ -256,11 +257,11 @@ mod tests {
     #[test]
     fn three_interior_is_interior_true_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
-        image.set_black(1, 1);
-        image.set_black(1, 0);
-        image.set_black(0, 1);
-        image.set_black(2, 1);
+        let mut image = BinaryImage::new(3, 3, PixelColor::White);
+        image.set_fg(1, 1);
+        image.set_fg(1, 0);
+        image.set_fg(0, 1);
+        image.set_fg(2, 1);
 
         // Act
         let result = ThreeInteriorAlgorithm::is_interior(&image, 1, 1);
@@ -272,10 +273,10 @@ mod tests {
     #[test]
     fn three_interior_is_interior_false_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
-        image.set_black(1, 1);
-        image.set_black(1, 0);
-        image.set_black(2, 1);
+        let mut image = BinaryImage::new(3, 3, PixelColor::White);
+        image.set_fg(1, 1);
+        image.set_fg(1, 0);
+        image.set_fg(2, 1);
 
         // Act
         let result = ThreeInteriorAlgorithm::is_interior(&image, 1, 1);
@@ -287,10 +288,10 @@ mod tests {
     #[test]
     fn two_interior_is_interior_true_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
-        image.set_black(1, 1);
-        image.set_black(1, 0);
-        image.set_black(0, 1);
+        let mut image = BinaryImage::new(3, 3, PixelColor::White);
+        image.set_fg(1, 1);
+        image.set_fg(1, 0);
+        image.set_fg(0, 1);
 
         // Act
         let result = TwoInteriorAlgorithm::is_interior(&image, 1, 1);
@@ -301,10 +302,10 @@ mod tests {
     #[test]
     fn two_interior_is_interior_false_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
-        image.set_black(1, 1);
-        image.set_black(1, 0);
-        image.set_black(1, 2);
+        let mut image = BinaryImage::new(3, 3, PixelColor::White);
+        image.set_fg(1, 1);
+        image.set_fg(1, 0);
+        image.set_fg(1, 2);
 
         // Act
         let result = TwoInteriorAlgorithm::is_interior(&image, 1, 1);

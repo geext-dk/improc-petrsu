@@ -6,7 +6,9 @@ use num_traits::Bounded;
 use std::convert::TryInto;
 
 pub struct BinaryImage {
-    image: Vec<Vec<PixelColor>>
+    image: Vec<Vec<PixelColor>>,
+    bg_color: PixelColor,
+    fg_color: PixelColor
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -21,7 +23,7 @@ impl BinaryImage {
         let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
 
         for (x, y) in self.iter() {
-            if self.is_white(x, y) {
+            if self.is_bg(x, y) {
                 let pixel = rgb_image.get_pixel_mut(x as u32, y as u32);
                 let max_value = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Bounded>::max_value();
 
@@ -44,33 +46,57 @@ impl BinaryImage {
         self.image.len()
     }
 
-    pub fn is_black(&self, x: usize, y: usize) -> bool {
-        self.image[y][x] == PixelColor::Black
+    pub fn get_bg_color(&self) -> PixelColor {
+        self.bg_color
     }
 
-    pub fn is_white(&self, x: usize, y: usize) -> bool {
-        self.image[y][x] == PixelColor::White
+    pub fn get_fg_color(&self) -> PixelColor {
+        self.fg_color
     }
 
-    pub fn is_equals(&self, x: usize, y: usize, color: PixelColor) -> bool {
-        self.image[y][x] == color
+    pub fn is_fg(&self, x: usize, y: usize) -> bool {
+        self.get_color(x, y) == self.fg_color
     }
 
-    pub fn set_black(&mut self, x: usize, y: usize) {
-        self.image[y][x] = PixelColor::Black;
+    pub fn is_bg(&self, x: usize, y: usize) -> bool {
+        self.get_color(x, y) == self.bg_color
     }
 
-    pub fn set_white(&mut self, x: usize, y: usize) {
-        self.image[y][x] = PixelColor::White;
+    pub fn set_fg(&mut self, x: usize, y: usize) {
+        self.set_color(x, y, self.fg_color);
     }
 
-    pub fn new_with_color(width: usize, height: usize, color: PixelColor) -> Self {
-        BinaryImage {
-            image: vec![vec![color; width]; height]
+    pub fn set_bg(&mut self, x: usize, y: usize) {
+        self.set_color(x, y, self.bg_color);
+    }
+
+    fn set_color(&mut self, x: usize, y: usize, color: PixelColor) {
+        self.image[y][x] = color;
+    }
+
+    fn get_color(&self, x: usize, y: usize) -> PixelColor {
+        self.image[y][x]
+    }
+
+    pub fn fill(&mut self, color: PixelColor) {
+        for (x, y) in self.iter() {
+            self.set_color(x, y, color);
         }
     }
 
-    pub fn from_image<T: GenericImageView>(image_view: &T) -> Self {
+    pub fn new(width: usize, height: usize, bg: PixelColor) -> Self {
+        BinaryImage {
+            image: vec![vec![bg; width]; height],
+            bg_color: bg,
+            fg_color: if bg == PixelColor::Black {
+                    PixelColor::White
+                } else {
+                    PixelColor::Black
+                }
+        }
+    }
+
+    pub fn from_image<T: GenericImageView>(image_view: &T, bg_color: PixelColor) -> Self {
         let height = image_view.height().try_into().unwrap();
         let width = image_view.width().try_into().unwrap();
 
@@ -94,8 +120,16 @@ impl BinaryImage {
             }
         }
 
+        let fg_color = if bg_color == PixelColor::Black {
+            PixelColor::White
+        } else {
+            PixelColor::Black
+        };
+
         BinaryImage {
-            image
+            image,
+            bg_color,
+            fg_color
         }
     }
 }
