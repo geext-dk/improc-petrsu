@@ -66,6 +66,12 @@ impl BinaryImage {
         }
     }
 
+    pub fn new_with_color(width: usize, height: usize, color: PixelColor) -> Self {
+        BinaryImage {
+            image: vec![vec![color; width]; height]
+        }
+    }
+
     pub fn from_image<T: GenericImageView>(image_view: &T) -> Self {
         let height = image_view.height().try_into().unwrap();
         let width = image_view.width().try_into().unwrap();
@@ -77,12 +83,12 @@ impl BinaryImage {
                 let mut pixel = image_view.get_pixel(x, y);
                 let zero = <<T::Pixel as Pixel>::Subpixel as Zero>::zero();
                 let mut is_zero = true;
-                pixel.apply_with_alpha(|c| {
+                pixel.apply_without_alpha(|c| {
                     if c != zero {
                         is_zero = false;
                     }
                     c
-                }, |c| c);
+                });
                 
                 if !is_zero {
                     image[y as usize][x as usize] = PixelColor::White;

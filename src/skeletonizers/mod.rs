@@ -1,4 +1,3 @@
-mod eberly_interior_algorithms;
 pub mod rosenfeld_skeletonizer;
 pub mod eberly_skeletonizer;
 pub mod zhangsuen_skeletonizer;
@@ -26,19 +25,17 @@ fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: Ad
     components != count_components(&around, mode)
 }
 
-fn fill_around(around: &mut BinaryImage, image: &BinaryImage, mut x: usize, mut y: usize) {
-    x -= 1;
-    y -= 1;
+fn fill_around(around: &mut BinaryImage, image: &BinaryImage, x: usize, y: usize) {
     for i in 0..9 {
         let delta_x = i % 3;
         let delta_y = i / 3;
         let new_x = x + delta_x;
         let new_y = y + delta_y;
 
-        if new_x > image.width() - 1 || new_y > image.height() - 1 {
+        if new_x == 0 || new_x - 1 > image.width() - 1 || new_y == 0 || new_y - 1 > image.height() - 1 {
             around.set_black(delta_x, delta_y);
         } else {
-            if image.is_black(new_x, new_y) {
+            if image.is_black(new_x - 1, new_y - 1) {
                 around.set_black(delta_x, delta_y);
             } else {
                 around.set_white(delta_x, delta_y);

@@ -1,14 +1,13 @@
 pub mod skeletonizers;
 pub mod bool_matrix;
-// pub mod binary_image_converters;
-pub mod binary_image;
+mod binary_image;
 pub mod ffi;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let _x = crate::binary_image::BinaryImage::new(3, 3);
-        assert_eq!(2 + 2, 4);
-    }
-}
+// re-exports
+pub use skeletonizers::eberly_skeletonizer::EberlySkeletonizer;
+pub use skeletonizers::rosenfeld_skeletonizer::RosenfeldSkeletonizer;
+pub use skeletonizers::zhangsuen_skeletonizer::ZhangSuenSkeletonizer;
+pub use binary_image::BinaryImage;
+pub use skeletonizers::Skeletonizer;
+pub use skeletonizers::AdjacencyMode;
+pub use binary_image::PixelColor;
