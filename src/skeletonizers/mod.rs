@@ -18,15 +18,16 @@ pub trait Skeletonizer {
 fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode, foreground_color: PixelColor) -> bool {
     let mut around = get_around(image, x, y);
 
-    let components = count_components(&around, mode);
+    let components = count_components(&around, mode, foreground_color);
+    dbg!(components);
 
     if foreground_color == PixelColor::White { 
-        around.set_white(1, 1);
-    } else {
         around.set_black(1, 1);
+    } else {
+        around.set_white(1, 1);
     }
 
-    components != count_components(&around, mode)
+    components != count_components(&around, mode, foreground_color)
 }
 
 fn get_around(image: &BinaryImage, x: usize, y: usize) -> BinaryImage {
@@ -52,13 +53,13 @@ fn get_around(image: &BinaryImage, x: usize, y: usize) -> BinaryImage {
     around
 }
 
-fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
+fn count_components(image: &BinaryImage, mode: AdjacencyMode, foreground_color: PixelColor) -> u32 {
     let mut amount = 0;
     let mut is_checked = BoolMatrix::new(image.width(), image.height(), false);
     let mut pixels_stack = Vec::new();
 
     for (x, y) in image.iter() {
-        if image.is_white(x, y) || is_checked.check(x, y) {
+        if !image.is_equals(x, y, foreground_color) || is_checked.check(x, y) {
             continue;
         }
 
@@ -70,36 +71,36 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
             is_checked.set(next_x, next_y);
 
             // TODO: make this look not like shit and optimize
-            if next_x != 0 && image.is_black(next_x - 1, next_y) && !is_checked.check(next_x - 1, next_y) {
+            if next_x != 0 && image.is_equals(next_x - 1, next_y, foreground_color) && !is_checked.check(next_x - 1, next_y) {
                 pixels_stack.push((next_x - 1, next_y));
             }
 
-            if next_x != image.width() - 1 && image.is_black(next_x + 1, next_y) && !is_checked.check(next_x + 1, next_y) {
+            if next_x != image.width() - 1 && image.is_equals(next_x + 1, next_y, foreground_color) && !is_checked.check(next_x + 1, next_y) {
                 pixels_stack.push((next_x + 1, next_y));
             }
 
-            if next_y != 0 && image.is_black(next_x, next_y - 1) && !is_checked.check(next_x, next_y - 1) {
+            if next_y != 0 && image.is_equals(next_x, next_y - 1, foreground_color) && !is_checked.check(next_x, next_y - 1) {
                 pixels_stack.push((next_x, next_y - 1));
             }
 
-            if next_y != image.height() - 1 && image.is_black(next_x, next_y + 1) && !is_checked.check(next_x, next_y + 1) {
+            if next_y != image.height() - 1 && image.is_equals(next_x, next_y + 1, foreground_color) && !is_checked.check(next_x, next_y + 1) {
                 pixels_stack.push((next_x, next_y + 1));
             }
 
             if mode == AdjacencyMode::Eight {
-                if next_x != 0 && next_y != 0 && image.is_black(next_x - 1, next_y - 1) && !is_checked.check(next_x - 1, next_y - 1) {
+                if next_x != 0 && next_y != 0 && image.is_equals(next_x - 1, next_y - 1, foreground_color) && !is_checked.check(next_x - 1, next_y - 1) {
                     pixels_stack.push((next_x - 1, next_y - 1));
                 }
 
-                if next_x != image.width() - 1 && next_y != 0 && image.is_black(next_x + 1, next_y - 1) && !is_checked.check(next_x + 1, next_y - 1) {
+                if next_x != image.width() - 1 && next_y != 0 && image.is_equals(next_x + 1, next_y - 1, foreground_color) && !is_checked.check(next_x + 1, next_y - 1) {
                     pixels_stack.push((next_x + 1, next_y - 1));
                 }
 
-                if next_x != 0 && next_y != image.height() - 1 && image.is_black(next_x - 1, next_y + 1) && !is_checked.check(next_x - 1, next_y + 1) {
+                if next_x != 0 && next_y != image.height() - 1 && image.is_equals(next_x - 1, next_y + 1, foreground_color) && !is_checked.check(next_x - 1, next_y + 1) {
                     pixels_stack.push((next_x - 1, next_y + 1));
                 }
 
-                if next_x != image.width() - 1 && next_y != image.height() - 1 && image.is_black(next_x + 1, next_y + 1) && !is_checked.check(next_x + 1, next_y + 1) {
+                if next_x != image.width() - 1 && next_y != image.height() - 1 && image.is_equals(next_x + 1, next_y + 1, foreground_color) && !is_checked.check(next_x + 1, next_y + 1) {
                     pixels_stack.push((next_x + 1, next_y + 1));
                 }
             }
@@ -123,7 +124,7 @@ mod tests {
         image.set_black(2, 2);
 
         // Act
-        let count = count_components(&image, AdjacencyMode::Four);
+        let count = count_components(&image, AdjacencyMode::Four, PixelColor::Black);
 
         // Assert
         assert_eq!(3, count);
@@ -138,7 +139,7 @@ mod tests {
         image.set_black(2, 2);
 
         // Act
-        let count = count_components(&image, AdjacencyMode::Eight);
+        let count = count_components(&image, AdjacencyMode::Eight, PixelColor::Black);
 
         // Assert
         assert_eq!(1, count);
@@ -154,7 +155,7 @@ mod tests {
         image.set_black(0, 2);
 
         // Act
-        let count = count_components(&image, AdjacencyMode::Eight);
+        let count = count_components(&image, AdjacencyMode::Eight, PixelColor::Black);
 
         // Assert
         assert_eq!(4, count);
@@ -229,25 +230,25 @@ mod tests {
     fn is_local_articulation_point_true_modeeight_test() {
         // Arrange
         let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(0, 0);
         image.set_white(1, 1);
         image.set_white(2, 2);
-        image.set_white(3, 3);
 
         // Act & Assert
-        assert_eq!(true, is_local_articulation_point(&image, 2, 2, AdjacencyMode::Eight, PixelColor::White));
+        assert_eq!(true, is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight, PixelColor::White));
     }
 
     #[test]
     fn is_local_articulation_point_false_modeeight_test() {
         // Arrange
         let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(0, 0);
         image.set_white(1, 1);
         image.set_white(2, 2);
-        image.set_white(3, 3);
+        image.set_white(0, 1);
         image.set_white(1, 2);
-        image.set_white(2, 3);
 
         // Act & Assert
-        assert_eq!(false, is_local_articulation_point(&image, 2, 2, AdjacencyMode::Eight, PixelColor::White));
+        assert_eq!(false, is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight, PixelColor::White));
     }
 }

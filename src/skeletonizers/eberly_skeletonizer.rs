@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn eberly_algorithm_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(4, 4, PixelColor::White);
+        let mut image = BinaryImage::new_with_color(4, 4, PixelColor::Black);
         let skeletonizer = EberlySkeletonizer::new();
 
         // Act

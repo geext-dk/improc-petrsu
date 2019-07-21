@@ -52,6 +52,10 @@ impl BinaryImage {
         self.image[y][x] == PixelColor::White
     }
 
+    pub fn is_equals(&self, x: usize, y: usize, color: PixelColor) -> bool {
+        self.image[y][x] == color
+    }
+
     pub fn set_black(&mut self, x: usize, y: usize) {
         self.image[y][x] = PixelColor::Black;
     }
