@@ -1,8 +1,6 @@
-use crate::binary_image::BinaryImage;
-use crate::skeletonizers::AdjacencyMode;
-use crate::skeletonizers::Skeletonizer;
+use crate::binary_image::{ BinaryImage, PixelColor };
+use crate::skeletonizers::{ is_local_articulation_point, Skeletonizer, AdjacencyMode };
 use crate::bool_matrix::BoolMatrix;
-use crate::skeletonizers::is_local_articulation_point;
 
 #[derive(PartialEq, Eq)]
 pub enum ProcessingSide
@@ -104,7 +102,8 @@ impl RosenfeldSkeletonizer {
                 continue;
             }
 
-            if !is_local_articulation_point(image, x, y, self.mode) { 
+            // TODO: Extract foreground color to an option
+            if !is_local_articulation_point(image, x, y, self.mode, PixelColor::Black) { 
                 is_deleted.set(x, y);
                 image.set_white(x, y);
                 amount += 1;

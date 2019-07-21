@@ -1,5 +1,6 @@
 use crate::binary_image::BinaryImage;
 use crate::skeletonizers::Skeletonizer;
+use crate::PixelColor;
 
 pub struct ZhangSuenSkeletonizer;
 
@@ -118,7 +119,7 @@ impl ZhangSuenSkeletonizer {
 
 impl Skeletonizer for ZhangSuenSkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
-        let mut outer_image = BinaryImage::new(image.width() + 2, image.height() + 2);
+        let mut outer_image = BinaryImage::new_with_color(image.width() + 2, image.height() + 2, PixelColor::White);
         for (x, y) in image.iter() {
             if image.is_black(x, y) {
                 outer_image.set_black(x + 1, y + 1);

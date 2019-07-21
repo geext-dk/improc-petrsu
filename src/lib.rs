@@ -1,5 +1,5 @@
 pub mod skeletonizers;
-pub mod bool_matrix;
+mod bool_matrix;
 mod binary_image;
 pub mod ffi;
 

@@ -1,12 +1,6 @@
-use crate::skeletonizers::Skeletonizer;
-use crate::binary_image::BinaryImage;
+use crate::binary_image::{ BinaryImage, PixelColor };
 use crate::bool_matrix::BoolMatrix;
-use crate::skeletonizers::is_local_articulation_point;
-use crate::skeletonizers::is_in_range;
-use crate::AdjacencyMode;
-use crate::PixelColor;
-
-use std::collections::HashSet;
+use crate::skeletonizers::{ is_local_articulation_point, AdjacencyMode, Skeletonizer };
 
 pub struct EberlySkeletonizer;
 struct FourInteriorAlgorithm;
@@ -92,7 +86,7 @@ impl EberlySkeletonizer {
             && !is_interior.check(x, y)
             && Self::is_adjacent_to_zero(image, x, y)
             && Self::is_adjacent_to_interior(image, x, y, is_interior)
-            && is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
+            && is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black)
     }
 
     fn is_adjacent_to_zero(image: &BinaryImage, mut x: usize, mut y: usize) -> bool {
@@ -160,7 +154,7 @@ impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black) {
                 image.set_white(x, y);
             }
         }
@@ -222,7 +216,7 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight, PixelColor::Black) {
                 image.set_white(x, y);
             }
         }
@@ -232,6 +226,7 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::PixelColor;
 
     #[test]
     fn eberly_constructor_test() {
@@ -242,7 +237,7 @@ mod tests {
     #[test]
     fn eberly_algorithm_test() {
         // Arrange
-        let mut image = BinaryImage::new_with_color(4, 4, PixelColor::Black);
+        let mut image = BinaryImage::new_with_color(4, 4, PixelColor::White);
         let skeletonizer = EberlySkeletonizer::new();
 
         // Act

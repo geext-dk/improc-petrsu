@@ -60,12 +60,6 @@ impl BinaryImage {
         self.image[y][x] = PixelColor::White;
     }
 
-    pub fn new(width: usize, height: usize) -> Self {
-        BinaryImage {
-            image: vec![vec![PixelColor::Black; width]; height]
-        }
-    }
-
     pub fn new_with_color(width: usize, height: usize, color: PixelColor) -> Self {
         BinaryImage {
             image: vec![vec![color; width]; height]

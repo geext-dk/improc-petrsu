@@ -1,7 +1,8 @@
 pub mod rosenfeld_skeletonizer;
 pub mod eberly_skeletonizer;
 pub mod zhangsuen_skeletonizer;
-use crate::binary_image::BinaryImage;
+
+use crate::binary_image::{ BinaryImage, PixelColor };
 use crate::bool_matrix::BoolMatrix;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -14,18 +15,23 @@ pub trait Skeletonizer {
     fn process(&self, binary_image: &mut BinaryImage);
 }
 
-fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode) -> bool {
-    let mut around = BinaryImage::new(3, 3);
-    fill_around(&mut around, image, x, y);
+fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode, foreground_color: PixelColor) -> bool {
+    let mut around = get_around(image, x, y);
 
     let components = count_components(&around, mode);
 
-    around.set_white(1, 1);
+    if foreground_color == PixelColor::White { 
+        around.set_white(1, 1);
+    } else {
+        around.set_black(1, 1);
+    }
 
     components != count_components(&around, mode)
 }
 
-fn fill_around(around: &mut BinaryImage, image: &BinaryImage, x: usize, y: usize) {
+fn get_around(image: &BinaryImage, x: usize, y: usize) -> BinaryImage {
+    let mut around = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+    
     for i in 0..9 {
         let delta_x = i % 3;
         let delta_y = i / 3;
@@ -42,6 +48,8 @@ fn fill_around(around: &mut BinaryImage, image: &BinaryImage, x: usize, y: usize
             }
         }
     }
+
+    around
 }
 
 fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
@@ -101,6 +109,145 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
     amount
 }
 
-fn is_in_range(value: usize, left: usize, right: usize) -> bool {
-        value >= left && value <= right
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn count_components_three_modefour_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
+        image.set_black(0, 0);
+        image.set_black(1, 1);
+        image.set_black(2, 2);
+
+        // Act
+        let count = count_components(&image, AdjacencyMode::Four);
+
+        // Assert
+        assert_eq!(3, count);
+    }
+
+    #[test]
+    fn count_components_one_modeeight_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
+        image.set_black(0, 0);
+        image.set_black(1, 1);
+        image.set_black(2, 2);
+
+        // Act
+        let count = count_components(&image, AdjacencyMode::Eight);
+
+        // Assert
+        assert_eq!(1, count);
+    }
+
+    #[test]
+    fn count_components_four_modeeight_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::White);
+        image.set_black(0, 0);
+        image.set_black(2, 2);
+        image.set_black(2, 0);
+        image.set_black(0, 2);
+
+        // Act
+        let count = count_components(&image, AdjacencyMode::Eight);
+
+        // Assert
+        assert_eq!(4, count);
+    }
+
+    #[test]
+    fn get_around_borders_test() {
+        // Arrange
+        let image = BinaryImage::new_with_color(1, 1, PixelColor::White);
+        
+        // Act
+        let around = get_around(&image, 0, 0);
+
+        // Assert
+        for (x, y) in around.iter() {
+            if x == 1 && y == 1 {
+                assert!(around.is_white(x, y));
+            } else {
+                assert!(around.is_black(x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn get_around_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(5, 5, PixelColor::Black);
+        image.set_white(2, 2);
+        image.set_white(1, 2);
+        image.set_white(3, 3);
+        image.set_white(3, 4);
+
+        // Act
+        let around = get_around(&image, 2, 2);
+
+        // Assert
+        for (x, y) in around.iter() {
+            if x == 1 && y == 1 || x == 0 && y == 1 || x == 2 && y == 2 {
+                assert!(around.is_white(x, y));
+            } else {
+                assert!(around.is_black(x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn is_local_articulation_point_true_modefour_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(1, 1);
+        image.set_white(2, 2);
+        image.set_white(2, 1);
+
+        // Act & Assert
+        assert_eq!(true, is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four, PixelColor::White));
+    }
+
+    #[test]
+    fn is_local_articulation_point_false_modefour_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(1, 1);
+        image.set_white(2, 2);
+        image.set_white(2, 1);
+        image.set_white(1, 2);
+
+        // Act & Assert
+        assert_eq!(false, is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four, PixelColor::White));
+    }
+
+    #[test]
+    fn is_local_articulation_point_true_modeeight_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(1, 1);
+        image.set_white(2, 2);
+        image.set_white(3, 3);
+
+        // Act & Assert
+        assert_eq!(true, is_local_articulation_point(&image, 2, 2, AdjacencyMode::Eight, PixelColor::White));
+    }
+
+    #[test]
+    fn is_local_articulation_point_false_modeeight_test() {
+        // Arrange
+        let mut image = BinaryImage::new_with_color(3, 3, PixelColor::Black);
+        image.set_white(1, 1);
+        image.set_white(2, 2);
+        image.set_white(3, 3);
+        image.set_white(1, 2);
+        image.set_white(2, 3);
+
+        // Act & Assert
+        assert_eq!(false, is_local_articulation_point(&image, 2, 2, AdjacencyMode::Eight, PixelColor::White));
+    }
 }
