@@ -96,7 +96,7 @@ impl BinaryImage {
         }
     }
 
-    pub fn from_image<T: GenericImageView>(image_view: &T, bg_color: PixelColor) -> Self {
+    pub fn from_rgb_image(image_view: &RgbImage, bg_color: PixelColor) -> Self {
         let height = image_view.height().try_into().unwrap();
         let width = image_view.width().try_into().unwrap();
 
@@ -104,15 +104,15 @@ impl BinaryImage {
 
         for y in 0..image_view.height() {
             for x in 0..image_view.width() {
-                let mut pixel = image_view.get_pixel(x, y);
-                let zero = <<T::Pixel as Pixel>::Subpixel as Zero>::zero();
+                let pixel = image_view.get_pixel(x, y);
+                let zero = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
                 let mut is_zero = true;
-                pixel.apply_without_alpha(|c| {
-                    if c != zero {
+                for channel in pixel.channels() {
+                    if *channel != zero {
                         is_zero = false;
+                        break;
                     }
-                    c
-                });
+                }
                 
                 if !is_zero {
                     image[y as usize][x as usize] = PixelColor::White;
