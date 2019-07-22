@@ -16,10 +16,6 @@ impl BoolMatrix {
     pub fn set(&mut self, x: usize, y: usize) {
         self.data[y][x] = true;
     }
-
-    pub fn unset(&mut self, x: usize, y: usize) {
-        self.data[y][x] = false;
-    }
 }
 
 #[cfg(test)]
@@ -82,17 +78,5 @@ mod tests {
 
         // Assert
         assert_eq!(true, matrix.data[1][1]);
-    }
-    
-    #[test]
-    fn unset_test() {
-        // Arrange
-        let mut matrix = BoolMatrix::new(3, 3, true);
-
-        // Act
-        matrix.unset(1, 1);
-
-        // Assert
-        assert_eq!(false, matrix.data[1][1]);
     }
 }

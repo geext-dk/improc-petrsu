@@ -5,10 +5,10 @@ use crate::bool_matrix::BoolMatrix;
 #[derive(PartialEq, Eq)]
 pub enum ProcessingSide
 {
-    Up,
-    Right,
-    Down,
-    Left
+    North,
+    East,
+    South,
+    West
 }
 
 pub struct RosenfeldSkeletonizer {
@@ -17,7 +17,7 @@ pub struct RosenfeldSkeletonizer {
 
 impl Skeletonizer for RosenfeldSkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
-        let sides = [ProcessingSide::Up, ProcessingSide::Right, ProcessingSide::Down, ProcessingSide::Left];
+        let sides = [ProcessingSide::North, ProcessingSide::South, ProcessingSide::West, ProcessingSide::East];
 
         loop {
             let mut x = 0;
@@ -39,11 +39,6 @@ impl RosenfeldSkeletonizer {
         }
     }
 
-    fn was_or_is_black(&self, image: &BinaryImage, is_deleted: &BoolMatrix, x: usize, y: usize) -> bool {
-        return x < image.width() && y < image.height()
-            && (image.is_fg(x, y) || is_deleted.check(x, y));
-    }
-
     fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide) -> usize {
         let mut amount = 0;
 
@@ -54,46 +49,58 @@ impl RosenfeldSkeletonizer {
                 continue;
             }
 
+            let mut is_fg = [[false; 3]; 3];
+            for i in 0..9 {
+                let new_x = x + i % 3;
+                let new_y = y + i / 3;
+                is_fg[i / 3][i % 3] = if new_x == 0 || new_x > image.width() || new_y == 0 || new_y > image.height() 
+                        || (image.is_bg(new_x - 1, new_y - 1) && !is_deleted.check(new_x - 1, new_y - 1)) {
+                    false
+                } else {
+                    true
+                };
+            }
+
             match side {
-                ProcessingSide::Up    if self.was_or_is_black(image, &is_deleted, x, y - 1) => continue,
-                ProcessingSide::Right if self.was_or_is_black(image, &is_deleted, x + 1, y) => continue,
-                ProcessingSide::Down  if self.was_or_is_black(image, &is_deleted, x, y + 1) => continue,
-                ProcessingSide::Left  if self.was_or_is_black(image, &is_deleted, x - 1, y) => continue,
+                ProcessingSide::North if is_fg[0][1] => continue,
+                ProcessingSide::East  if is_fg[1][2] => continue,
+                ProcessingSide::South if is_fg[2][1] => continue,
+                ProcessingSide::West  if is_fg[1][0] => continue,
                 _ => ()
             };
             
             let mut black_count = 0;
 
-            if *side != ProcessingSide::Up && y != 0 && (image.is_fg(x, y - 1) || is_deleted.check(x, y - 1)) {
+            if *side != ProcessingSide::North && is_fg[0][1] {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Right && x != image.width() - 1 && (image.is_fg(x + 1, y) || is_deleted.check(x + 1, y)) {
+            if *side != ProcessingSide::East && is_fg[1][2] {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Down  && y != image.height() - 1 && (image.is_fg(x, y + 1) || is_deleted.check(x, y + 1)) {
+            if *side != ProcessingSide::South  && is_fg[2][1] {
                 black_count += 1;
             }
 
-            if *side != ProcessingSide::Left  && x != 0 && (image.is_fg(x - 1, y) || is_deleted.check(x - 1, y)) {
+            if *side != ProcessingSide::West  && is_fg[1][0] {
                 black_count += 1;
             }
             
             if self.mode == AdjacencyMode::Eight {
-                if x != 0 && y != 0 && (image.is_fg(x - 1, y - 1) || is_deleted.check(x - 1, y - 1)) {
+                if is_fg[0][0] {
                     black_count += 1;
                 }
     
-                if x != image.width() - 1 && y != 0 && (image.is_fg(x + 1, y - 1) || is_deleted.check(x + 1, y - 1)) {
+                if is_fg[0][2] {
                     black_count += 1;
                 }
     
-                if x != image.width() - 1 && y != image.height() - 1 && (image.is_fg(x + 1, y + 1) || is_deleted.check(x + 1, y + 1)) {
+                if is_fg[2][2] {
                     black_count += 1;
                 }
     
-                if x != 0 && y != image.height() - 1 && (image.is_fg(x - 1, y + 1) || is_deleted.check(x - 1, y + 1)) {
+                if is_fg[2][0] {
                     black_count += 1;
                 }
             }
@@ -110,5 +117,51 @@ impl RosenfeldSkeletonizer {
         }
 
         amount
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::PixelColor;
+
+    #[test]
+    fn rosenfeld_algorithm_eightmode_test() {
+        // Arrange
+        let mut image = BinaryImage::new(4, 4, PixelColor::White);
+        image.fill(PixelColor::Black);
+        let skeletonizer = RosenfeldSkeletonizer::new(AdjacencyMode::Eight);
+
+        // Act
+        skeletonizer.process(&mut image);
+        
+        // Assert
+        for (x, y) in image.iter() {
+            if x == 2 && y == 2 || x == 1 && y == 2 {
+                assert!(image.is_fg(x, y));
+            } else {
+                assert!(image.is_bg(x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn rosenfeld_algorithm_fourmode_test() {
+        // Arrange
+        let mut image = BinaryImage::new(4, 4, PixelColor::White);
+        image.fill(PixelColor::Black);
+        let skeletonizer = RosenfeldSkeletonizer::new(AdjacencyMode::Four);
+
+        // Act
+        skeletonizer.process(&mut image);
+        
+        // Assert
+        for (x, y) in image.iter() {
+            if x == 2 && y == 2 || x == 1 && y == 2 {
+                assert!(image.is_fg(x, y));
+            } else {
+                assert!(image.is_bg(x, y));
+            }
+        }
     }
 }

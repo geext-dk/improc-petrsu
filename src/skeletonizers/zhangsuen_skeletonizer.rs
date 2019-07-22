@@ -160,6 +160,7 @@ impl ZhangSuenSkeletonizer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::PixelColor;
 
     #[test]
     fn zhangsuen_algorithm_test() {
