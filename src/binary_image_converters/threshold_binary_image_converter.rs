@@ -1,4 +1,4 @@
-use image::{ RgbImage, GenericImageView, Pixel, Primitive };
+use image::{ RgbImage, GenericImageView, Pixel };
 use num_traits::{ Zero, Bounded };
 use super::BinaryImageConverter;
 

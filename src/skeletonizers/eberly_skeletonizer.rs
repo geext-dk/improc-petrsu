@@ -52,7 +52,7 @@ impl EberlySkeletonizer {
     }
 
     fn get_interior_matrix<T: EberlyInteriorAlgorithm>(image: &BinaryImage) -> Option<BoolMatrix> {
-        let mut is_interior = BoolMatrix::new(image.height(), image.width(), false);
+        let mut is_interior = BoolMatrix::new(image.width(), image.height(), false);
         let mut is_interior_exists = false;
 
         for (x, y) in image.iter() {
