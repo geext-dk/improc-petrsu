@@ -1,4 +1,4 @@
-use image::ImageError;
+use image::{ ImageError, RgbImage };
 use crate::PixelColor;
 
 use crate::{
@@ -7,13 +7,29 @@ use crate::{
     RosenfeldSkeletonizer,
     EberlySkeletonizer,
     Skeletonizer,
-    AdjacencyMode
+    AdjacencyMode,
+    BinaryImageConverter,
+    ThresholdBinaryImageConverter
 };
 
 #[repr(C)]
 pub struct Buffer {
     data: *mut u8,
     len: usize
+}
+
+#[no_mangle]
+pub extern fn improc_petrsu_threshold_binary_image_convert(image_bytes: *const u8, len: usize, threshold: u8) -> Buffer {
+    if let Ok(mut img) = get_rgb_image_from_raw_data(image_bytes, len) {
+        let converter = ThresholdBinaryImageConverter::new(threshold);
+        converter.convert_to_binary(&mut img);
+        rgb_image_to_raw_buffer(img)
+    } else {
+        Buffer {
+            data: 0 as *mut u8,
+            len: 0
+        }
+    }
 }
 
 #[no_mangle]
@@ -71,9 +87,7 @@ pub extern fn improc_petrsu_free(buf: Buffer) {
 }
 
 fn skeletonize<T: Skeletonizer>(image_bytes: *const u8, len: usize, skeletonizer: T) -> Result<Buffer, ImageError>  {
-    let slice = unsafe { std::slice::from_raw_parts(image_bytes, len) };
-
-    let original_image = image::load_from_memory(slice)?.to_rgb();
+    let original_image = get_rgb_image_from_raw_data(image_bytes, len)?;
 
     let mut binary_image = BinaryImage::from_rgb_image(&original_image, PixelColor::White);
 
@@ -81,14 +95,24 @@ fn skeletonize<T: Skeletonizer>(image_bytes: *const u8, len: usize, skeletonizer
 
     let result_image = binary_image.to_rgb_image();
 
-    let mut slice = result_image.into_raw().into_boxed_slice();
+    Ok(rgb_image_to_raw_buffer(result_image))
+}
+
+fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<RgbImage, ImageError> {
+    let slice = unsafe { std::slice::from_raw_parts(image_bytes, len) };
+
+    Ok(image::load_from_memory(slice)?.to_rgb())
+}
+
+fn rgb_image_to_raw_buffer(image: RgbImage) -> Buffer {
+    let mut slice = image.into_raw().into_boxed_slice();
     let data = slice.as_mut_ptr();
     let len = slice.len();
 
     std::mem::forget(slice);
 
-    Ok(Buffer {
+    Buffer {
         data,
         len
-    })
+    }
 }
