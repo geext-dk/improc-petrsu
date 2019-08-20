@@ -1,4 +1,4 @@
-use image::{ ImageError, RgbImage };
+use image::{ ImageError, RgbImage, DynamicImage, ImageOutputFormat };
 use crate::PixelColor;
 
 use crate::{
@@ -105,14 +105,22 @@ fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<Rgb
 }
 
 fn rgb_image_to_raw_buffer(image: RgbImage) -> Buffer {
-    let mut slice = image.into_raw().into_boxed_slice();
-    let data = slice.as_mut_ptr();
-    let len = slice.len();
+    let dyn_image = DynamicImage::ImageRgb8(image);
+    let mut vector = Vec::new();
+    match dyn_image.write_to(&mut vector, ImageOutputFormat::PNG) {
+        Ok(_) => {
+            let slice = vector.into_boxed_slice();
+            let len = slice.len();
+            let data = Box::into_raw(slice);
 
-    std::mem::forget(slice);
-
-    Buffer {
-        data,
-        len
+            Buffer {
+                data: data as *mut u8,
+                len
+            }
+        },
+        Err(_) => Buffer {
+            data: 0 as *mut u8,
+            len: 0
+        }
     }
 }
