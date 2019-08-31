@@ -1,5 +1,21 @@
-pub mod rosenfeld_skeletonizer;
+// skeletonizers/mod.rs - A module containing all skeletonizer algorithms
+// Copyright (C) 2019 Denis Karpovskiy
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 pub mod eberly_skeletonizer;
+pub mod rosenfeld_skeletonizer;
 pub mod zhangsuen_skeletonizer;
 
 use crate::binary_image::BinaryImage;
@@ -8,14 +24,19 @@ use crate::bool_matrix::BoolMatrix;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AdjacencyMode {
     Four,
-    Eight
+    Eight,
 }
 
 pub trait Skeletonizer {
     fn process(&self, binary_image: &mut BinaryImage);
 }
 
-fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: AdjacencyMode) -> bool {
+fn is_local_articulation_point(
+    image: &BinaryImage,
+    x: usize,
+    y: usize,
+    mode: AdjacencyMode,
+) -> bool {
     let mut around = get_around(image, x, y);
 
     let components = count_components(&around, mode);
@@ -27,15 +48,19 @@ fn is_local_articulation_point(image: &BinaryImage, x: usize, y: usize, mode: Ad
 
 fn get_around(image: &BinaryImage, x: usize, y: usize) -> BinaryImage {
     let mut around = BinaryImage::new(3, 3, image.get_bg_color());
-    
+
     for i in 0..9 {
         let delta_x = i % 3;
         let delta_y = i / 3;
         let new_x = x + delta_x;
         let new_y = y + delta_y;
 
-        if new_x != 0 && new_x - 1 < image.width() && new_y != 0 && new_y - 1 < image.height() 
-                && image.is_fg(new_x - 1, new_y - 1) {
+        if new_x != 0
+            && new_x - 1 < image.width()
+            && new_y != 0
+            && new_y - 1 < image.height()
+            && image.is_fg(new_x - 1, new_y - 1)
+        {
             around.set_fg(delta_x, delta_y);
         }
     }
@@ -57,40 +82,68 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
         pixels_stack.push((x, y));
         while !pixels_stack.is_empty() {
             let (next_x, next_y) = pixels_stack.pop().unwrap();
-            
+
             is_checked.set(next_x, next_y);
 
             // TODO: make this look not like shit and optimize
-            if next_x != 0 && image.is_fg(next_x - 1, next_y) && !is_checked.check(next_x - 1, next_y) {
+            if next_x != 0
+                && image.is_fg(next_x - 1, next_y)
+                && !is_checked.check(next_x - 1, next_y)
+            {
                 pixels_stack.push((next_x - 1, next_y));
             }
 
-            if next_x != image.width() - 1 && image.is_fg(next_x + 1,  next_y) && !is_checked.check(next_x + 1, next_y) {
+            if next_x != image.width() - 1
+                && image.is_fg(next_x + 1, next_y)
+                && !is_checked.check(next_x + 1, next_y)
+            {
                 pixels_stack.push((next_x + 1, next_y));
             }
 
-            if next_y != 0 && image.is_fg(next_x,  next_y - 1) && !is_checked.check(next_x, next_y - 1) {
+            if next_y != 0
+                && image.is_fg(next_x, next_y - 1)
+                && !is_checked.check(next_x, next_y - 1)
+            {
                 pixels_stack.push((next_x, next_y - 1));
             }
 
-            if next_y != image.height() - 1 && image.is_fg(next_x,  next_y + 1) && !is_checked.check(next_x, next_y + 1) {
+            if next_y != image.height() - 1
+                && image.is_fg(next_x, next_y + 1)
+                && !is_checked.check(next_x, next_y + 1)
+            {
                 pixels_stack.push((next_x, next_y + 1));
             }
 
             if mode == AdjacencyMode::Eight {
-                if next_x != 0 && next_y != 0 && image.is_fg(next_x - 1,  next_y - 1) && !is_checked.check(next_x - 1, next_y - 1) {
+                if next_x != 0
+                    && next_y != 0
+                    && image.is_fg(next_x - 1, next_y - 1)
+                    && !is_checked.check(next_x - 1, next_y - 1)
+                {
                     pixels_stack.push((next_x - 1, next_y - 1));
                 }
 
-                if next_x != image.width() - 1 && next_y != 0 && image.is_fg(next_x + 1,  next_y - 1) && !is_checked.check(next_x + 1, next_y - 1) {
+                if next_x != image.width() - 1
+                    && next_y != 0
+                    && image.is_fg(next_x + 1, next_y - 1)
+                    && !is_checked.check(next_x + 1, next_y - 1)
+                {
                     pixels_stack.push((next_x + 1, next_y - 1));
                 }
 
-                if next_x != 0 && next_y != image.height() - 1 && image.is_fg(next_x - 1,  next_y + 1) && !is_checked.check(next_x - 1, next_y + 1) {
+                if next_x != 0
+                    && next_y != image.height() - 1
+                    && image.is_fg(next_x - 1, next_y + 1)
+                    && !is_checked.check(next_x - 1, next_y + 1)
+                {
                     pixels_stack.push((next_x - 1, next_y + 1));
                 }
 
-                if next_x != image.width() - 1 && next_y != image.height() - 1 && image.is_fg(next_x + 1,  next_y + 1) && !is_checked.check(next_x + 1, next_y + 1) {
+                if next_x != image.width() - 1
+                    && next_y != image.height() - 1
+                    && image.is_fg(next_x + 1, next_y + 1)
+                    && !is_checked.check(next_x + 1, next_y + 1)
+                {
                     pixels_stack.push((next_x + 1, next_y + 1));
                 }
             }
@@ -99,7 +152,6 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
 
     amount
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -157,7 +209,7 @@ mod tests {
         // Arrange
         let mut image = BinaryImage::new(1, 1, PixelColor::White);
         image.set_fg(0, 0);
-        
+
         // Act
         let around = get_around(&image, 0, 0);
 
@@ -202,7 +254,10 @@ mod tests {
         image.set_fg(2, 1);
 
         // Act & Assert
-        assert_eq!(true, is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four));
+        assert_eq!(
+            true,
+            is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four)
+        );
     }
 
     #[test]
@@ -215,7 +270,10 @@ mod tests {
         image.set_fg(1, 2);
 
         // Act & Assert
-        assert_eq!(false, is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four));
+        assert_eq!(
+            false,
+            is_local_articulation_point(&image, 2, 1, AdjacencyMode::Four)
+        );
     }
 
     #[test]
@@ -227,7 +285,10 @@ mod tests {
         image.set_fg(2, 2);
 
         // Act & Assert
-        assert_eq!(true, is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight));
+        assert_eq!(
+            true,
+            is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight)
+        );
     }
 
     #[test]
@@ -241,6 +302,9 @@ mod tests {
         image.set_fg(1, 2);
 
         // Act & Assert
-        assert_eq!(false, is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight));
+        assert_eq!(
+            false,
+            is_local_articulation_point(&image, 1, 1, AdjacencyMode::Eight)
+        );
     }
 }

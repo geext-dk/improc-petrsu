@@ -1,23 +1,39 @@
+// binary_image.rs - A helper struct to work with binary images
+// Copyright (C) 2019 Denis Karpovskiy
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 use image::GenericImageView;
 use image::Pixel;
 use image::RgbImage;
-use num_traits::Zero;
 use num_traits::Bounded;
+use num_traits::Zero;
 use std::convert::TryInto;
 
 pub struct BinaryImage {
     image: Vec<Vec<PixelColor>>,
     bg_color: PixelColor,
-    fg_color: PixelColor
+    fg_color: PixelColor,
 }
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum PixelColor {
     Black,
-    White
+    White,
 }
 
-// todo: add unchecked 
+// todo: add unchecked
 impl BinaryImage {
     pub fn to_rgb_image(&self) -> RgbImage {
         let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
@@ -89,10 +105,10 @@ impl BinaryImage {
             image: vec![vec![bg; width]; height],
             bg_color: bg,
             fg_color: if bg == PixelColor::Black {
-                    PixelColor::White
-                } else {
-                    PixelColor::Black
-                }
+                PixelColor::White
+            } else {
+                PixelColor::Black
+            },
         }
     }
 
@@ -105,7 +121,8 @@ impl BinaryImage {
         for y in 0..image_view.height() {
             for x in 0..image_view.width() {
                 let pixel = image_view.get_pixel(x, y);
-                let zero = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
+                let zero =
+                    <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
                 let mut is_zero = true;
                 for channel in pixel.channels() {
                     if *channel != zero {
@@ -113,7 +130,7 @@ impl BinaryImage {
                         break;
                     }
                 }
-                
+
                 if !is_zero {
                     image[y as usize][x as usize] = PixelColor::White;
                 }
@@ -129,7 +146,7 @@ impl BinaryImage {
         BinaryImage {
             image,
             bg_color,
-            fg_color
+            fg_color,
         }
     }
 }
@@ -138,7 +155,7 @@ pub struct PixelIterator {
     current_x: usize,
     current_y: usize,
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl PixelIterator {
@@ -147,7 +164,7 @@ impl PixelIterator {
             current_x: 0,
             current_y: 0,
             width: image.width(),
-            height: image.height()
+            height: image.height(),
         }
     }
 }
@@ -164,10 +181,10 @@ impl Iterator for PixelIterator {
                 self.current_x = 0;
             }
         }
-        
+
         let ret = (self.current_x, self.current_y);
         self.current_x += 1;
 
-        Option::Some(ret)   
+        Option::Some(ret)
     }
 }

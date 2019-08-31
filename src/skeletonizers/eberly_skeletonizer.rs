@@ -1,6 +1,22 @@
+// eberly_skeletonizer.rs - Skeletonization using the Eberly algorithm
+// Copyright (C) 2019 Denis Karpovskiy
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
-use crate::skeletonizers::{ is_local_articulation_point, AdjacencyMode, Skeletonizer };
+use crate::skeletonizers::{is_local_articulation_point, AdjacencyMode, Skeletonizer};
 
 pub struct EberlySkeletonizer;
 struct FourInteriorAlgorithm;
@@ -16,25 +32,22 @@ trait EberlyInteriorAlgorithm {
 enum ReturnStatus {
     ExitCriteriaNotMet,
     NoMoreInteriorPixels,
-    CantRemoveMoreBoundaryPixels
+    CantRemoveMoreBoundaryPixels,
 }
 
 impl Skeletonizer for EberlySkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
-        while Self::thinning::<FourInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
-        }
+        while Self::thinning::<FourInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
 
-        while Self::thinning::<ThreeInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
-        }
-        
-        while Self::thinning::<TwoInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
-        }
+        while Self::thinning::<ThreeInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
+
+        while Self::thinning::<TwoInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
     }
 }
 
 impl EberlySkeletonizer {
     pub fn new() -> Self {
-        EberlySkeletonizer { }
+        EberlySkeletonizer {}
     }
 
     fn thinning<T: EberlyInteriorAlgorithm>(image: &mut BinaryImage) -> ReturnStatus {
@@ -95,7 +108,7 @@ impl EberlySkeletonizer {
         }
 
         for i in 0..9 {
-            if image.is_bg(x + i % 3 - 1, y + i / 3 - 1) { 
+            if image.is_bg(x + i % 3 - 1, y + i / 3 - 1) {
                 return true;
             }
         }
@@ -103,12 +116,20 @@ impl EberlySkeletonizer {
         false
     }
 
-    fn is_adjacent_to_interior(image: &BinaryImage, x: usize, y: usize, is_interior: &BoolMatrix) -> bool {
+    fn is_adjacent_to_interior(
+        image: &BinaryImage,
+        x: usize,
+        y: usize,
+        is_interior: &BoolMatrix,
+    ) -> bool {
         for i in 0..3 {
             for j in 0..3 {
-                if x + j != 0 && x + j - 1 < image.width()
-                        && y + i != 0 && y + i - 1 < image.height()
-                        && is_interior.check(x + j - 1, y + i - 1) {
+                if x + j != 0
+                    && x + j - 1 < image.width()
+                    && y + i != 0
+                    && y + i - 1 < image.height()
+                    && is_interior.check(x + j - 1, y + i - 1)
+                {
                     return true;
                 }
             }
@@ -120,7 +141,7 @@ impl EberlySkeletonizer {
 
 impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
     fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
-        if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 { 
+        if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 {
             false
         } else {
             let x_offset = [1, 2, 0, 1, 1];
@@ -148,7 +169,9 @@ impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+            if is_interior.check(x, y)
+                && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
+            {
                 image.set_bg(x, y);
             }
         }
@@ -165,9 +188,12 @@ impl ThreeInteriorAlgorithm {
             let new_x = x + x_offsets[i];
             let new_y = y + y_offsets[i];
 
-            if new_x != 0 && new_x - 1 < image.width()
-                    && new_y != 0 && new_y - 1 < image.height()
-                    && image.is_fg(new_x - 1, new_y - 1) {
+            if new_x != 0
+                && new_x - 1 < image.width()
+                && new_y != 0
+                && new_y - 1 < image.height()
+                && image.is_fg(new_x - 1, new_y - 1)
+            {
                 count += 1;
             }
         }
@@ -200,7 +226,7 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
 
             if horizontal_black_count == 1 && vertical_black_count == 1 {
                 true
-            } else { 
+            } else {
                 false
             }
         } else {
@@ -210,7 +236,9 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
 
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
         for (x, y) in image.iter() {
-            if is_interior.check(x, y) && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight) {
+            if is_interior.check(x, y)
+                && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
+            {
                 image.set_bg(x, y);
             }
         }
@@ -292,7 +320,7 @@ mod tests {
 
         assert_eq!(true, result);
     }
-    
+
     #[test]
     fn two_interior_is_interior_false_test() {
         // Arrange
