@@ -9,6 +9,3 @@ license = "GPL-3.0-or-later"
 [dependencies]
 image = "0.22"
 num-traits = "0.2"
-
-[lib]
-crate-type = ["dylib"]
