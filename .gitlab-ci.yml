@@ -59,8 +59,9 @@ deploy-linux:
   before_script:
   - 'dnf install -y zip'
   script:
-  - 'mv $OUTDIR/improc-petrsu-gtk .'
+  - 'cd $OUTDIR'
   - 'zip improc-petrsu-linux.zip improc-petrsu-gtk'
+  - 'mv improc-petrsu-linux.zip ..'
   artifacts:
     name: "$CI_JOB_NAME-$CI_JOB_ID"
     paths:
