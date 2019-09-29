@@ -35,6 +35,56 @@ pub enum PixelColor {
 
 // todo: add unchecked
 impl BinaryImage {
+    pub fn new(width: usize, height: usize, bg: PixelColor) -> Self {
+        BinaryImage {
+            image: vec![vec![bg; width]; height],
+            bg_color: bg,
+            fg_color: if bg == PixelColor::Black {
+                PixelColor::White
+            } else {
+                PixelColor::Black
+            },
+        }
+    }
+
+    pub fn from_rgb_image(image_view: &RgbImage, bg_color: PixelColor) -> Self {
+        let height = image_view.height().try_into().unwrap();
+        let width = image_view.width().try_into().unwrap();
+
+        let mut image = vec![vec![PixelColor::Black; width]; height];
+
+        for y in 0..image_view.height() {
+            for x in 0..image_view.width() {
+                let pixel = image_view.get_pixel(x, y);
+                let zero =
+                    <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
+                let mut is_zero = true;
+                for channel in pixel.channels() {
+                    if *channel != zero {
+                        is_zero = false;
+                        break;
+                    }
+                }
+
+                if !is_zero {
+                    image[y as usize][x as usize] = PixelColor::White;
+                }
+            }
+        }
+
+        let fg_color = if bg_color == PixelColor::Black {
+            PixelColor::White
+        } else {
+            PixelColor::Black
+        };
+
+        BinaryImage {
+            image,
+            bg_color,
+            fg_color,
+        }
+    }
+
     pub fn to_rgb_image(&self) -> RgbImage {
         let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
 
@@ -97,56 +147,6 @@ impl BinaryImage {
     pub fn fill(&mut self, color: PixelColor) {
         for (x, y) in self.iter() {
             self.set_color(x, y, color);
-        }
-    }
-
-    pub fn new(width: usize, height: usize, bg: PixelColor) -> Self {
-        BinaryImage {
-            image: vec![vec![bg; width]; height],
-            bg_color: bg,
-            fg_color: if bg == PixelColor::Black {
-                PixelColor::White
-            } else {
-                PixelColor::Black
-            },
-        }
-    }
-
-    pub fn from_rgb_image(image_view: &RgbImage, bg_color: PixelColor) -> Self {
-        let height = image_view.height().try_into().unwrap();
-        let width = image_view.width().try_into().unwrap();
-
-        let mut image = vec![vec![PixelColor::Black; width]; height];
-
-        for y in 0..image_view.height() {
-            for x in 0..image_view.width() {
-                let pixel = image_view.get_pixel(x, y);
-                let zero =
-                    <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
-                let mut is_zero = true;
-                for channel in pixel.channels() {
-                    if *channel != zero {
-                        is_zero = false;
-                        break;
-                    }
-                }
-
-                if !is_zero {
-                    image[y as usize][x as usize] = PixelColor::White;
-                }
-            }
-        }
-
-        let fg_color = if bg_color == PixelColor::Black {
-            PixelColor::White
-        } else {
-            PixelColor::Black
-        };
-
-        BinaryImage {
-            image,
-            bg_color,
-            fg_color,
         }
     }
 }

@@ -1,11 +1,5 @@
-[package]
-name = "improc_petrsu"
-version = "0.1.1"
-authors = ["Denis Karpovskiy <geext29@gmail.com>"]
-edition = "2018"
-description = "My university project"
-license = "GPL-3.0-or-later"
-
-[dependencies]
-image = "0.22"
-num-traits = "0.2"
+[workspace]
+members = [
+  "improc-petrsu-core",
+  "improc-petrsu-gtk"
+]
