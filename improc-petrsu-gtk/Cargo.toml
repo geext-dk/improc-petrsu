@@ -9,11 +9,11 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 improc-petrsu-core = { version = "0.2", path = "../improc-petrsu-core" }
-image = "0.22"
+image = "0.23.4"
 clap = { version = "2.33.0", features = ["yaml"] }
-gtk = { version = "0.7", features = ["v3_22_30"] }
-gio = { version = "0.7", features = ["v2_58"] }
-glib = { version = "0.8", features = ["v2_58"] }
-gdk-pixbuf = "0.7"
+gtk = { version = "0.8.1", features = ["v3_16"] }
+gio = { version = "0.8.1", features = ["v2_44"] }
+glib = { version = "0.9.3", features = ["v2_44"] }
+gdk-pixbuf = "0.8"
 log = "0.4.8"
-env_logger = "0.6.2"
+env_logger = "0.7.1"
