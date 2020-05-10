@@ -135,7 +135,7 @@ fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<Rgb
 fn rgb_image_to_raw_buffer(image: RgbImage) -> Buffer {
     let dyn_image = DynamicImage::ImageRgb8(image);
     let mut vector = Vec::new();
-    match dyn_image.write_to(&mut vector, ImageOutputFormat::PNG) {
+    match dyn_image.write_to(&mut vector, ImageOutputFormat::Png) {
         Ok(_) => {
             let slice = vector.into_boxed_slice();
             let len = slice.len();

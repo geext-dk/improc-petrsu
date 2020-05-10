@@ -145,7 +145,7 @@ fn convert_to_binary_handler(app_state: Rc<AppState>) {
 
         info!("Writing the result as byte array...");
         if dyn_image
-            .write_to(&mut vector, ImageOutputFormat::PNG)
+            .write_to(&mut vector, ImageOutputFormat::Png)
             .is_err() {
             open_error_dialog(app_state, "Couldn't write the image as PNG");
             return;
@@ -205,7 +205,7 @@ fn skeletonize_handler(app_state: Rc<AppState>) {
 
         info!("Writing the image as byte array...");
         if dyn_image
-            .write_to(&mut vector, ImageOutputFormat::PNG)
+            .write_to(&mut vector, ImageOutputFormat::Png)
             .is_err() {
             open_error_dialog(app_state, "Couldn't write the image as PNG");
             return;
