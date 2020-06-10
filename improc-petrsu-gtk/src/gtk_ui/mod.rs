@@ -136,7 +136,7 @@ fn convert_to_binary_handler(app_state: Rc<AppState>) {
             }
         };
 
-        let converter = ThresholdBinaryImageConverter::new(threshold as u8);
+        let converter = ThresholdBinaryImageConverter::new(threshold as u32);
 
         info!("Converting the image to binary...");
         converter.convert_to_binary(&mut image);
@@ -193,7 +193,7 @@ fn skeletonize_handler(app_state: Rc<AppState>) {
         };
 
         info!("Converting the image to binary...");
-        let mut binary_image = BinaryImage::from_rgb_image(&image, PixelColor::White);
+        let mut binary_image = BinaryImage::from_image(&image, PixelColor::White);
 
         info!("Skeletonizing the image...");
         skeletonizer.process(&mut binary_image);

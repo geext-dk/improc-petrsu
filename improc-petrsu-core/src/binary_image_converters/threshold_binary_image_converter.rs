@@ -15,36 +15,41 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::BinaryImageConverter;
-use image::{GenericImageView, Pixel, RgbImage};
+use image::{Pixel, ImageBuffer};
 use num_traits::{Bounded, Zero};
+use std::ops::{Deref, DerefMut};
 
 pub struct ThresholdBinaryImageConverter {
-    threshold: u8,
+    threshold: u32,
 }
 
 impl ThresholdBinaryImageConverter {
-    pub fn new(threshold: u8) -> Self {
+    pub fn new(threshold: u32) -> Self {
         ThresholdBinaryImageConverter { threshold }
     }
 }
 
 impl BinaryImageConverter for ThresholdBinaryImageConverter {
-    fn convert_to_binary(&self, image: &mut RgbImage) {
+    fn convert_to_binary<P, Container>(&self, image: &mut ImageBuffer<P, Container>)
+        where P: Pixel + 'static,
+              P::Subpixel : 'static,
+              Container: Deref<Target = [P::Subpixel]> + DerefMut {
         for y in 0..image.height() {
             for x in 0..image.width() {
                 let pixel = image.get_pixel_mut(x, y);
 
                 let mut is_zero = true;
                 for c in pixel.channels() {
-                    if *c > self.threshold {
+                    let pixel_value: u32 = num_traits::cast(c.clone()).unwrap();
+                    if pixel_value > self.threshold {
                         is_zero = false;
                         break;
                     }
                 }
 
-                let max = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Bounded>::max_value();
+                let max = <P::Subpixel as Bounded>::max_value();
                 let zero =
-                    <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
+                    <P::Subpixel as Zero>::zero();
                 if is_zero {
                     pixel.apply(|_| zero);
                 } else {

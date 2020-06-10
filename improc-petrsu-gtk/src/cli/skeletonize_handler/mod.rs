@@ -48,7 +48,7 @@ impl SkeletonizeHandler {
         }).to_rgb();
 
         println!("Converting the image to binary...");
-        let mut binary_image = BinaryImage::from_rgb_image(&image, PixelColor::White);
+        let mut binary_image = BinaryImage::from_image(&image, PixelColor::White);
 
         println!("Skeletonization...");
         skeletonizer.process(&mut binary_image);

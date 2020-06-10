@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use image::GenericImageView;
+use image::{GenericImageView, ImageBuffer};
 use image::Pixel;
 use image::RgbImage;
 use num_traits::Bounded;
-use num_traits::Zero;
 use std::convert::TryInto;
+use std::ops::{DerefMut, Deref};
 
 pub struct BinaryImage {
     image: Vec<Vec<PixelColor>>,
@@ -47,7 +47,10 @@ impl BinaryImage {
         }
     }
 
-    pub fn from_rgb_image(image_view: &RgbImage, bg_color: PixelColor) -> Self {
+    pub fn from_image<P, Container>(image_view: &ImageBuffer<P, Container>, bg_color: PixelColor) -> Self
+        where P: Pixel + 'static,
+              P::Subpixel : 'static,
+              Container: Deref<Target = [P::Subpixel]> + DerefMut {
         let height = image_view.height().try_into().unwrap();
         let width = image_view.width().try_into().unwrap();
 
@@ -56,11 +59,10 @@ impl BinaryImage {
         for y in 0..image_view.height() {
             for x in 0..image_view.width() {
                 let pixel = image_view.get_pixel(x, y);
-                let zero =
-                    <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Zero>::zero();
                 let mut is_zero = true;
                 for channel in pixel.channels() {
-                    if *channel != zero {
+                    let channel_value: u32 = num_traits::cast(*channel).unwrap();
+                    if channel_value != 0 {
                         is_zero = false;
                         break;
                     }

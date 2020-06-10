@@ -32,7 +32,7 @@ pub struct Buffer {
 pub extern "C" fn improc_petrsu_threshold_binary_image_convert(
     image_bytes: *const u8,
     len: usize,
-    threshold: u8,
+    threshold: u32,
 ) -> Buffer {
     if let Ok(mut img) = get_rgb_image_from_raw_data(image_bytes, len) {
         let converter = ThresholdBinaryImageConverter::new(threshold);
@@ -117,7 +117,7 @@ fn skeletonize<T: Skeletonizer>(
 ) -> Result<Buffer, ImageError> {
     let original_image = get_rgb_image_from_raw_data(image_bytes, len)?;
 
-    let mut binary_image = BinaryImage::from_rgb_image(&original_image, PixelColor::White);
+    let mut binary_image = BinaryImage::from_image(&original_image, PixelColor::White);
 
     skeletonizer.process(&mut binary_image);
 
@@ -126,7 +126,8 @@ fn skeletonize<T: Skeletonizer>(
     Ok(rgb_image_to_raw_buffer(result_image))
 }
 
-fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<RgbImage, ImageError> {
+fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize)
+    -> Result<RgbImage, ImageError> {
     let slice = unsafe { std::slice::from_raw_parts(image_bytes, len) };
 
     Ok(image::load_from_memory(slice)?.to_rgb())

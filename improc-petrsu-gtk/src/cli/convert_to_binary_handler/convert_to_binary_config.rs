@@ -19,7 +19,7 @@ use clap::{ ArgMatches };
 pub struct ConvertToBinaryConfig<'a> {
     pub input_file: &'a str,
     pub output_file: &'a str,
-    pub threshold: u8
+    pub threshold: u32
 }
 
 impl<'a> ConvertToBinaryConfig<'a> {
@@ -31,7 +31,7 @@ impl<'a> ConvertToBinaryConfig<'a> {
             Err(_) => {
                 eprintln!("Error parsing the value of the 'threshold' parameter");
                 eprintln!("Using the default value of 150");
-                150u8
+                150u32
             }
         };
 
