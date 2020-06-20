@@ -40,7 +40,7 @@ impl BinaryImageConverter for ThresholdBinaryImageConverter {
 
                 let mut is_zero = true;
                 for c in pixel.channels() {
-                    let pixel_value: u32 = num_traits::cast(c.clone()).unwrap();
+                    let pixel_value: u32 = num_traits::cast(*c).unwrap();
                     if pixel_value > self.threshold {
                         is_zero = false;
                         break;

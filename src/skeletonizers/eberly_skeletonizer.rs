@@ -25,7 +25,15 @@ struct TwoInteriorAlgorithm;
 
 trait EberlyInteriorAlgorithm {
     fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool;
-    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix);
+    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
+        for (x, y) in image.iter() {
+            if is_interior.check(x, y)
+                && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
+            {
+                image.set_bg(x, y);
+            }
+        }
+    }
 }
 
 #[derive(PartialEq, Eq)]
@@ -139,45 +147,6 @@ impl EberlySkeletonizer {
     }
 }
 
-impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
-    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
-        if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 {
-            false
-        } else {
-            let x_offset = [1, 2, 0, 1, 1];
-            let y_offset = [1, 1, 1, 2, 0];
-
-            for i in 0..x_offset.len() {
-                if image.is_bg(x + x_offset[i] - 1, y + y_offset[i] - 1) {
-                    return false;
-                }
-            }
-
-            true
-        }
-    }
-
-    fn remove_interiors(_image: &mut BinaryImage, _is_interior: &BoolMatrix) {
-        // nothing to do
-    }
-}
-
-impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
-    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
-        image.is_fg(x, y) && Self::count_black_neighbours(image, x, y) == 3
-    }
-
-    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
-        for (x, y) in image.iter() {
-            if is_interior.check(x, y)
-                && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
-            {
-                image.set_bg(x, y);
-            }
-        }
-    }
-}
-
 impl ThreeInteriorAlgorithm {
     fn count_black_neighbours(image: &BinaryImage, x: usize, y: usize) -> usize {
         let mut count = 0;
@@ -224,24 +193,39 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
                 horizontal_black_count += 1;
             }
 
-            if horizontal_black_count == 1 && vertical_black_count == 1 {
-                true
-            } else {
-                false
-            }
+            horizontal_black_count == 1 && vertical_black_count == 1
         } else {
             false
         }
     }
+}
 
-    fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
-        for (x, y) in image.iter() {
-            if is_interior.check(x, y)
-                && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
-            {
-                image.set_bg(x, y);
+impl EberlyInteriorAlgorithm for ThreeInteriorAlgorithm {
+    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
+        image.is_fg(x, y) && Self::count_black_neighbours(image, x, y) == 3
+    }
+}
+
+impl EberlyInteriorAlgorithm for FourInteriorAlgorithm {
+    fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool {
+        if x == 0 || y == 0 || x >= image.width() - 1 || y >= image.height() - 1 {
+            false
+        } else {
+            let x_offset = [1, 2, 0, 1, 1];
+            let y_offset = [1, 1, 1, 2, 0];
+
+            for i in 0..x_offset.len() {
+                if image.is_bg(x + x_offset[i] - 1, y + y_offset[i] - 1) {
+                    return false;
+                }
             }
+
+            true
         }
+    }
+
+    fn remove_interiors(_image: &mut BinaryImage, _is_interior: &BoolMatrix) {
+        // nothing to do
     }
 }
 

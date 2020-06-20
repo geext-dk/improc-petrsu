@@ -158,7 +158,7 @@ mod tests {
 
         // Assert
         for (x, y) in image.iter() {
-            if x == 2 && y == 2 || x == 1 && y == 2 {
+            if (x == 2 || x == 1) && y == 2 {
                 assert!(image.is_fg(x, y));
             } else {
                 assert!(image.is_bg(x, y));
@@ -178,7 +178,7 @@ mod tests {
 
         // Assert
         for (x, y) in image.iter() {
-            if x == 2 && y == 2 || x == 1 && y == 2 {
+            if (x == 2 || x == 1) && y == 2 {
                 assert!(image.is_fg(x, y));
             } else {
                 assert!(image.is_bg(x, y));
