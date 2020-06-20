@@ -40,7 +40,7 @@ pub extern "C" fn improc_petrsu_threshold_binary_image_convert(
         rgb_image_to_raw_buffer(img)
     } else {
         Buffer {
-            data: 0 as *mut u8,
+            data: std::ptr::null_mut::<u8>(),
             len: 0,
         }
     }
@@ -56,7 +56,7 @@ pub extern "C" fn improc_petrsu_zhang_suen_skeletonization(
     match skeletonize(image_bytes, len, skeletonizer) {
         Ok(img) => img,
         Err(_) => Buffer {
-            data: 0 as *mut u8,
+            data: std::ptr::null_mut::<u8>(),
             len: 0,
         },
     }
@@ -78,7 +78,7 @@ pub extern "C" fn improc_petrsu_rosenfeld_skeletonization(
     match skeletonize(image_bytes, len, skeletonizer) {
         Ok(img) => img,
         Err(_) => Buffer {
-            data: 0 as *mut u8,
+            data: std::ptr::null_mut::<u8>(),
             len: 0,
         },
     }
@@ -94,7 +94,7 @@ pub extern "C" fn improc_petrsu_eberly_skeletonization(
     match skeletonize(image_bytes, len, skeletonizer) {
         Ok(img) => img,
         Err(_) => Buffer {
-            data: 0 as *mut u8,
+            data: std::ptr::null_mut::<u8>(),
             len: 0,
         },
     }
@@ -148,7 +148,7 @@ fn rgb_image_to_raw_buffer(image: RgbImage) -> Buffer {
             }
         }
         Err(_) => Buffer {
-            data: 0 as *mut u8,
+            data: std::ptr::null_mut::<u8>(),
             len: 0,
         },
     }
