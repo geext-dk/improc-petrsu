@@ -155,6 +155,12 @@ impl ZhangSuenSkeletonizer {
     }
 }
 
+impl Default for ZhangSuenSkeletonizer {
+    fn default() -> Self {
+        ZhangSuenSkeletonizer::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -245,6 +245,12 @@ impl EberlyInteriorAlgorithm for TwoInteriorAlgorithm {
     }
 }
 
+impl Default for EberlySkeletonizer {
+    fn default() -> Self {
+        EberlySkeletonizer::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
