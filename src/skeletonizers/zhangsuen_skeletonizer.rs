@@ -55,7 +55,8 @@ impl ZhangSuenSkeletonizer {
         ZhangSuenSkeletonizer {}
     }
 
-    fn step_one(image: &mut BinaryImage) -> u32 {
+    fn step<F>(image: &mut BinaryImage, check_around: F) -> u32
+        where F: Fn(&BinaryImage, usize, usize) -> bool {
         let mut count = 0;
         let mut marked_pixels = Vec::new();
 
@@ -74,9 +75,7 @@ impl ZhangSuenSkeletonizer {
                     continue;
                 }
 
-                if image.is_fg(x, y + 1)
-                    && image.is_fg(x + 1, y)
-                    && (image.is_fg(x, y - 1) || image.is_fg(x - 1, y))
+                if check_around(image, x, y)
                 {
                     continue;
                 }
@@ -93,41 +92,18 @@ impl ZhangSuenSkeletonizer {
         count
     }
 
+    fn step_one(image: &mut BinaryImage) -> u32 {
+        Self::step(image, |image, x, y| -> bool {
+            image.is_fg(x, y + 1) && image.is_fg(x + 1, y) &&
+                (image.is_fg(x, y - 1) || image.is_fg(x - 1, y))
+        } )
+    }
+
     fn step_two(image: &mut BinaryImage) -> u32 {
-        let mut count = 0;
-        let mut marked_pixels = Vec::new();
-        for y in 1..image.height() - 1 {
-            for x in 1..image.width() - 1 {
-                if image.is_bg(x, y) {
-                    continue;
-                }
-
-                let black_count = ZhangSuenSkeletonizer::count_black_neighbours(image, x, y);
-                if black_count < 2 || black_count > 6 {
-                    continue;
-                }
-
-                if ZhangSuenSkeletonizer::count_transitions(image, x, y) != 1 {
-                    continue;
-                }
-
-                if image.is_fg(x, y - 1)
-                    && image.is_fg(x - 1, y)
-                    && (image.is_fg(x, y + 1) || image.is_fg(x + 1, y))
-                {
-                    continue;
-                }
-
-                marked_pixels.push((x, y));
-                count += 1;
-            }
-        }
-
-        for (x, y) in marked_pixels {
-            image.set_bg(x, y);
-        }
-
-        count
+        Self::step(image, |image, x, y| {
+            image.is_fg(x, y - 1) && image.is_fg(x - 1, y) &&
+                (image.is_fg(x, y + 1) || image.is_fg(x + 1, y))
+        })
     }
 
     fn count_black_neighbours(image: &BinaryImage, mut x: usize, mut y: usize) -> u32 {
