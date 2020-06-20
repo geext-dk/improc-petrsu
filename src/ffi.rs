@@ -126,8 +126,7 @@ fn skeletonize<T: Skeletonizer>(
     Ok(rgb_image_to_raw_buffer(result_image))
 }
 
-fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize)
-    -> Result<RgbImage, ImageError> {
+fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<RgbImage, ImageError> {
     let slice = unsafe { std::slice::from_raw_parts(image_bytes, len) };
 
     Ok(image::load_from_memory(slice)?.to_rgb())

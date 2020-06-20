@@ -56,7 +56,9 @@ impl ZhangSuenSkeletonizer {
     }
 
     fn step<F>(image: &mut BinaryImage, check_around: F) -> u32
-        where F: Fn(&BinaryImage, usize, usize) -> bool {
+    where
+        F: Fn(&BinaryImage, usize, usize) -> bool,
+    {
         let mut count = 0;
         let mut marked_pixels = Vec::new();
 
@@ -75,8 +77,7 @@ impl ZhangSuenSkeletonizer {
                     continue;
                 }
 
-                if check_around(image, x, y)
-                {
+                if check_around(image, x, y) {
                     continue;
                 }
 
@@ -94,15 +95,17 @@ impl ZhangSuenSkeletonizer {
 
     fn step_one(image: &mut BinaryImage) -> u32 {
         Self::step(image, |image, x, y| -> bool {
-            image.is_fg(x, y + 1) && image.is_fg(x + 1, y) &&
-                (image.is_fg(x, y - 1) || image.is_fg(x - 1, y))
-        } )
+            image.is_fg(x, y + 1)
+                && image.is_fg(x + 1, y)
+                && (image.is_fg(x, y - 1) || image.is_fg(x - 1, y))
+        })
     }
 
     fn step_two(image: &mut BinaryImage) -> u32 {
         Self::step(image, |image, x, y| {
-            image.is_fg(x, y - 1) && image.is_fg(x - 1, y) &&
-                (image.is_fg(x, y + 1) || image.is_fg(x + 1, y))
+            image.is_fg(x, y - 1)
+                && image.is_fg(x - 1, y)
+                && (image.is_fg(x, y + 1) || image.is_fg(x + 1, y))
         })
     }
 

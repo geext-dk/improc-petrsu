@@ -71,9 +71,12 @@ impl RosenfeldSkeletonizer {
             for i in 0..9 {
                 let new_x = x + i % 3;
                 let new_y = y + i / 3;
-                is_fg[i / 3][i % 3] = !(new_x == 0 || new_x > image.width() || new_y == 0 ||
-                    new_y > image.height() || (image.is_bg(new_x - 1, new_y - 1) &&
-                    !is_deleted.check(new_x - 1, new_y - 1)));
+                is_fg[i / 3][i % 3] = !(new_x == 0
+                    || new_x > image.width()
+                    || new_y == 0
+                    || new_y > image.height()
+                    || (image.is_bg(new_x - 1, new_y - 1)
+                        && !is_deleted.check(new_x - 1, new_y - 1)));
             }
 
             match side {

@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::BinaryImageConverter;
-use image::{Pixel, ImageBuffer};
+use image::{ImageBuffer, Pixel};
 use num_traits::{Bounded, Zero};
 use std::ops::{Deref, DerefMut};
 
@@ -31,9 +31,11 @@ impl ThresholdBinaryImageConverter {
 
 impl BinaryImageConverter for ThresholdBinaryImageConverter {
     fn convert_to_binary<P, Container>(&self, image: &mut ImageBuffer<P, Container>)
-        where P: Pixel + 'static,
-              P::Subpixel : 'static,
-              Container: Deref<Target = [P::Subpixel]> + DerefMut {
+    where
+        P: Pixel + 'static,
+        P::Subpixel: 'static,
+        Container: Deref<Target = [P::Subpixel]> + DerefMut,
+    {
         for y in 0..image.height() {
             for x in 0..image.width() {
                 let pixel = image.get_pixel_mut(x, y);
@@ -48,8 +50,7 @@ impl BinaryImageConverter for ThresholdBinaryImageConverter {
                 }
 
                 let max = <P::Subpixel as Bounded>::max_value();
-                let zero =
-                    <P::Subpixel as Zero>::zero();
+                let zero = <P::Subpixel as Zero>::zero();
                 if is_zero {
                     pixel.apply(|_| zero);
                 } else {

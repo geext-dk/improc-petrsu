@@ -20,7 +20,8 @@ use std::ops::{Deref, DerefMut};
 
 pub trait BinaryImageConverter {
     fn convert_to_binary<P, Container>(&self, image: &mut ImageBuffer<P, Container>)
-        where P: Pixel + 'static,
-        P::Subpixel : 'static,
+    where
+        P: Pixel + 'static,
+        P::Subpixel: 'static,
         Container: Deref<Target = [P::Subpixel]> + DerefMut;
 }
