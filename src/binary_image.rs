@@ -143,11 +143,11 @@ impl BinaryImage {
         self.set_color(x, y, self.bg_color);
     }
 
-    fn set_color(&mut self, x: usize, y: usize, color: PixelColor) {
+    pub fn set_color(&mut self, x: usize, y: usize, color: PixelColor) {
         self.image[y][x] = color;
     }
 
-    fn get_color(&self, x: usize, y: usize) -> PixelColor {
+    pub fn get_color(&self, x: usize, y: usize) -> PixelColor {
         self.image[y][x]
     }
 
