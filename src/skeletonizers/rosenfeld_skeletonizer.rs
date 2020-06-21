@@ -62,7 +62,7 @@ impl RosenfeldSkeletonizer {
 
         let mut is_deleted = BoolMatrix::new(image.width(), image.height(), false);
 
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if image.is_bg(x, y) {
                 continue;
             }
@@ -160,7 +160,7 @@ mod tests {
         skeletonizer.process(&mut image);
 
         // Assert
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if (x == 2 || x == 1) && y == 2 {
                 assert!(image.is_fg(x, y));
             } else {
@@ -180,7 +180,7 @@ mod tests {
         skeletonizer.process(&mut image);
 
         // Assert
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if (x == 2 || x == 1) && y == 2 {
                 assert!(image.is_fg(x, y));
             } else {

@@ -26,7 +26,7 @@ struct TwoInteriorAlgorithm;
 trait EberlyInteriorAlgorithm {
     fn is_interior(image: &BinaryImage, x: usize, y: usize) -> bool;
     fn remove_interiors(image: &mut BinaryImage, is_interior: &BoolMatrix) {
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if is_interior.check(x, y)
                 && !is_local_articulation_point(image, x, y, AdjacencyMode::Eight)
             {
@@ -76,7 +76,7 @@ impl EberlySkeletonizer {
         let mut is_interior = BoolMatrix::new(image.width(), image.height(), false);
         let mut is_interior_exists = false;
 
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if T::is_interior(image, x, y) {
                 is_interior.set(x, y);
                 is_interior_exists = true;
@@ -92,7 +92,7 @@ impl EberlySkeletonizer {
 
     fn remove_boundaries(image: &mut BinaryImage, is_interior: &BoolMatrix) -> usize {
         let mut amount = 0;
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if Self::is_boundary(image, x, y, is_interior) {
                 image.set_bg(x, y);
                 amount += 1;
@@ -257,7 +257,7 @@ mod tests {
         skeletonizer.process(&mut image);
 
         // Assert
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if x == 2 && y == 2 {
                 assert!(image.is_fg(x, y));
             } else {

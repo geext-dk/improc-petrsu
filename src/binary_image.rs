@@ -95,7 +95,7 @@ impl BinaryImage {
     pub fn to_rgb_image(&self) -> RgbImage {
         let mut rgb_image = RgbImage::new(self.width() as u32, self.height() as u32);
 
-        for (x, y) in self.iter() {
+        for (x, y) in self.pixels_iter() {
             if self.is_bg(x, y) {
                 let pixel = rgb_image.get_pixel_mut(x as u32, y as u32);
                 let max_value = <<<RgbImage as GenericImageView>::Pixel as Pixel>::Subpixel as Bounded>::max_value();
@@ -107,7 +107,7 @@ impl BinaryImage {
         rgb_image
     }
 
-    pub fn iter(&self) -> PixelIterator {
+    pub fn pixels_iter(&self) -> PixelIterator {
         PixelIterator::new(self)
     }
 
@@ -152,7 +152,7 @@ impl BinaryImage {
     }
 
     pub fn fill(&mut self, color: PixelColor) {
-        for (x, y) in self.iter() {
+        for (x, y) in self.pixels_iter() {
             self.set_color(x, y, color);
         }
     }

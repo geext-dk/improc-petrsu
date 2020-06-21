@@ -23,7 +23,7 @@ impl Skeletonizer for ZhangSuenSkeletonizer {
     fn process(&self, image: &mut BinaryImage) {
         let mut outer_image =
             BinaryImage::new(image.width() + 2, image.height() + 2, image.get_bg_color());
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if image.is_fg(x, y) {
                 outer_image.set_fg(x + 1, y + 1);
             }
@@ -40,7 +40,7 @@ impl Skeletonizer for ZhangSuenSkeletonizer {
             }
         }
 
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if outer_image.is_fg(x + 1, y + 1) {
                 image.set_fg(x, y);
             } else {
@@ -180,7 +180,7 @@ mod tests {
         skeletonizer.process(&mut image);
 
         // Assert
-        for (x, y) in image.iter() {
+        for (x, y) in image.pixels_iter() {
             if x == 1 && y == 1 {
                 assert!(image.is_fg(x, y));
             } else {

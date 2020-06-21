@@ -73,7 +73,7 @@ fn count_components(image: &BinaryImage, mode: AdjacencyMode) -> u32 {
     let mut is_checked = BoolMatrix::new(image.width(), image.height(), false);
     let mut pixels_stack = Vec::new();
 
-    for (x, y) in image.iter() {
+    for (x, y) in image.pixels_iter() {
         if !image.is_fg(x, y) || is_checked.check(x, y) {
             continue;
         }
@@ -214,7 +214,7 @@ mod tests {
         let around = get_around(&image, 0, 0);
 
         // Assert
-        for (x, y) in around.iter() {
+        for (x, y) in around.pixels_iter() {
             if x == 1 && y == 1 {
                 assert!(around.is_fg(x, y));
             } else {
@@ -236,7 +236,7 @@ mod tests {
         let around = get_around(&image, 2, 2);
 
         // Assert
-        for (x, y) in around.iter() {
+        for (x, y) in around.pixels_iter() {
             if x == 1 && y == 1 || x == 0 && y == 1 || x == 2 && y == 2 {
                 assert!(around.is_fg(x, y));
             } else {
