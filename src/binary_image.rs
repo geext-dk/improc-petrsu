@@ -135,6 +135,14 @@ impl BinaryImage {
         self.get_color(x, y) == self.bg_color
     }
 
+    pub fn is_fg_or_default(&self, x: usize, y: usize) -> bool {
+        self.get_color_or_default(x, y) == self.fg_color
+    }
+
+    pub fn is_bg_or_default(&self, x: usize, y: usize) -> bool {
+        self.get_color_or_default(x, y) == self.bg_color
+    }
+
     pub fn set_fg(&mut self, x: usize, y: usize) {
         self.set_color(x, y, self.fg_color);
     }
@@ -149,6 +157,13 @@ impl BinaryImage {
 
     pub fn get_color(&self, x: usize, y: usize) -> PixelColor {
         self.image[y][x]
+    }
+
+    pub fn get_color_or_default(&self, x: usize, y: usize) -> PixelColor {
+        self.image.get(y)
+            .and_then(|row| row.get(x))
+            .copied()
+            .unwrap_or(self.bg_color)
     }
 
     pub fn fill(&mut self, color: PixelColor) {
