@@ -21,13 +21,14 @@ use num_traits::Bounded;
 use std::convert::TryInto;
 use std::ops::{Deref, DerefMut};
 
+#[derive(Debug, Clone)]
 pub struct BinaryImage {
     image: Vec<Vec<PixelColor>>,
     bg_color: PixelColor,
     fg_color: PixelColor,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PixelColor {
     Black,
     White,
