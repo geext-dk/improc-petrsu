@@ -17,6 +17,7 @@
 use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
 use crate::skeletonizers::{is_local_articulation_point, AdjacencyMode, Skeletonizer};
+use std::cmp::max;
 
 pub struct EberlySkeletonizer;
 struct FourInteriorAlgorithm;
@@ -44,18 +45,38 @@ enum ReturnStatus {
 }
 
 impl Skeletonizer for EberlySkeletonizer {
-    fn process(&self, image: &mut BinaryImage) {
-        while Self::thinning::<FourInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
+    fn process_with_progress<F>(&self, image: &mut BinaryImage, report_progress: F)
+    where
+        F: Fn(i32, i32),
+    {
+        let max_progress = Self::compute_max_progress(image.width(), image.height());
+        let mut current_progress = 0;
+        while Self::thinning::<FourInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
+            current_progress += 1;
+            report_progress(current_progress as i32, max_progress as i32);
+        }
 
-        while Self::thinning::<ThreeInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
+        while Self::thinning::<ThreeInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
+            current_progress += 1;
+            report_progress(current_progress as i32, max_progress as i32);
+        }
 
-        while Self::thinning::<TwoInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {}
+        while Self::thinning::<TwoInteriorAlgorithm>(image) == ReturnStatus::ExitCriteriaNotMet {
+            current_progress += 1;
+            report_progress(current_progress as i32, max_progress as i32);
+        }
+
+        report_progress(max_progress as i32, max_progress as i32);
     }
 }
 
 impl EberlySkeletonizer {
     pub fn new() -> Self {
         EberlySkeletonizer {}
+    }
+
+    fn compute_max_progress(width: usize, height: usize) -> usize {
+        max(width, height) / 2
     }
 
     fn thinning<T: EberlyInteriorAlgorithm>(image: &mut BinaryImage) -> ReturnStatus {

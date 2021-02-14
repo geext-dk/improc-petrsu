@@ -15,13 +15,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod threshold_binary_image_converter;
-use image::{ImageBuffer, Pixel};
-use std::ops::{Deref, DerefMut};
+use image::{GenericImage, Pixel};
 
 pub trait BinaryImageConverter {
-    fn convert_to_binary<P, Container>(&self, image: &mut ImageBuffer<P, Container>)
+    fn convert_to_binary<Img, Pix>(&self, image: &mut Img)
     where
-        P: Pixel + 'static,
-        P::Subpixel: 'static,
-        Container: Deref<Target = [P::Subpixel]> + DerefMut;
+        Pix: Pixel,
+        Img: GenericImage<Pixel = Pix>;
+    fn convert_to_binary_with_progress<Img, Pix, F>(&self, image: &mut Img, report_progress: F)
+    where
+        Img: GenericImage<Pixel = Pix>,
+        Pix: Pixel,
+        F: Fn(i32, i32);
 }

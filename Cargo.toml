@@ -1,10 +1,13 @@
 [package]
-name = "improc-petrsu"
+name = "improc_petrsu"
 version = "0.3.0"
 authors = ["Denis Karpovskiy <geext29@gmail.com>"]
 edition = "2018"
 description = "My university project"
 license = "GPL-3.0-or-later"
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
 image = "^0.23"

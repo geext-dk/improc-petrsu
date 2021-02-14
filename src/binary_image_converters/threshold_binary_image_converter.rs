@@ -15,9 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::BinaryImageConverter;
-use image::{ImageBuffer, Pixel};
+use image::{GenericImage, Pixel};
 use num_traits::{Bounded, Zero};
-use std::ops::{Deref, DerefMut};
+use std::convert::TryInto;
 
 pub struct ThresholdBinaryImageConverter {
     threshold: u32,
@@ -27,15 +27,29 @@ impl ThresholdBinaryImageConverter {
     pub fn new(threshold: u32) -> Self {
         ThresholdBinaryImageConverter { threshold }
     }
+
+    fn compute_max_progress(_width: u32, height: u32) -> u32 {
+        height
+    }
 }
 
 impl BinaryImageConverter for ThresholdBinaryImageConverter {
-    fn convert_to_binary<P, Container>(&self, image: &mut ImageBuffer<P, Container>)
+    fn convert_to_binary<Img, Pix>(&self, image: &mut Img)
     where
-        P: Pixel + 'static,
-        P::Subpixel: 'static,
-        Container: Deref<Target = [P::Subpixel]> + DerefMut,
+        Pix: Pixel,
+        Img: GenericImage<Pixel = Pix>,
     {
+        self.convert_to_binary_with_progress(image, |_, _| {});
+    }
+
+    fn convert_to_binary_with_progress<Img, Pix, F>(&self, image: &mut Img, report_progress: F)
+    where
+        Img: GenericImage<Pixel = Pix>,
+        Pix: Pixel,
+        F: Fn(i32, i32),
+    {
+        let max_progress = Self::compute_max_progress(image.width(), image.height());
+        let mut current_progress = 0;
         for y in 0..image.height() {
             for x in 0..image.width() {
                 let pixel = image.get_pixel_mut(x, y);
@@ -49,14 +63,19 @@ impl BinaryImageConverter for ThresholdBinaryImageConverter {
                     }
                 }
 
-                let max = <P::Subpixel as Bounded>::max_value();
-                let zero = <P::Subpixel as Zero>::zero();
+                let max = <Pix::Subpixel as Bounded>::max_value();
+                let zero = <Pix::Subpixel as Zero>::zero();
                 if is_zero {
                     pixel.apply(|_| zero);
                 } else {
                     pixel.apply(|_| max);
                 }
             }
+
+            current_progress += 1;
+            report_progress(current_progress, max_progress.try_into().unwrap());
         }
+
+        report_progress(max_progress as i32, max_progress.try_into().unwrap());
     }
 }

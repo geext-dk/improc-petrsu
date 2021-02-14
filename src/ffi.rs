@@ -29,31 +29,40 @@ pub struct Buffer {
 }
 
 #[no_mangle]
-pub extern "C" fn improc_petrsu_threshold_binary_image_convert(
-    image_bytes: *const u8,
+pub extern "C" fn improc_petrsu_threshold_binary_image_converter_process(
+    image_bytes: *mut u8,
     len: usize,
     threshold: u32,
+    report_progress: unsafe extern "C" fn(i32, i32),
 ) -> Buffer {
-    if let Ok(mut img) = get_rgb_image_from_raw_data(image_bytes, len) {
-        let converter = ThresholdBinaryImageConverter::new(threshold);
-        converter.convert_to_binary(&mut img);
-        rgb_image_to_raw_buffer(img)
-    } else {
-        Buffer {
-            data: std::ptr::null_mut::<u8>(),
-            len: 0,
+    match get_rgb_image_from_raw_data(image_bytes, len) {
+        Ok(mut img) => {
+            let converter = ThresholdBinaryImageConverter::new(threshold);
+            converter
+                .convert_to_binary_with_progress(&mut img, |a, b| unsafe { report_progress(a, b) });
+            rgb_image_to_raw_buffer(img)
+        }
+        Err(err) => {
+            eprintln!("Error: {}", err.to_string());
+            Buffer {
+                data: std::ptr::null_mut::<u8>(),
+                len: 0,
+            }
         }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn improc_petrsu_zhang_suen_skeletonization(
+pub extern "C" fn improc_petrsu_zhang_suen_skeletonizer_process(
     image_bytes: *const u8,
     len: usize,
+    report_progress: unsafe extern "C" fn(i32, i32),
 ) -> Buffer {
     let skeletonizer = ZhangSuenSkeletonizer::new();
 
-    match skeletonize(image_bytes, len, skeletonizer) {
+    match skeletonize(image_bytes, len, skeletonizer, |a, b| unsafe {
+        report_progress(a, b)
+    }) {
         Ok(img) => img,
         Err(_) => Buffer {
             data: std::ptr::null_mut::<u8>(),
@@ -63,10 +72,11 @@ pub extern "C" fn improc_petrsu_zhang_suen_skeletonization(
 }
 
 #[no_mangle]
-pub extern "C" fn improc_petrsu_rosenfeld_skeletonization(
+pub extern "C" fn improc_petrsu_rosenfeld_skeletonizer_process(
     image_bytes: *const u8,
     len: usize,
     adjacency_mode: i32,
+    report_progress: unsafe extern "C" fn(i32, i32),
 ) -> Buffer {
     let mode = if adjacency_mode == 0 {
         AdjacencyMode::Eight
@@ -75,7 +85,9 @@ pub extern "C" fn improc_petrsu_rosenfeld_skeletonization(
     };
     let skeletonizer = RosenfeldSkeletonizer::new(mode);
 
-    match skeletonize(image_bytes, len, skeletonizer) {
+    match skeletonize(image_bytes, len, skeletonizer, |a, b| unsafe {
+        report_progress(a, b)
+    }) {
         Ok(img) => img,
         Err(_) => Buffer {
             data: std::ptr::null_mut::<u8>(),
@@ -85,13 +97,16 @@ pub extern "C" fn improc_petrsu_rosenfeld_skeletonization(
 }
 
 #[no_mangle]
-pub extern "C" fn improc_petrsu_eberly_skeletonization(
+pub extern "C" fn improc_petrsu_eberly_skeletonizer_process(
     image_bytes: *const u8,
     len: usize,
+    report_progress: unsafe extern "C" fn(i32, i32),
 ) -> Buffer {
     let skeletonizer = EberlySkeletonizer::new();
 
-    match skeletonize(image_bytes, len, skeletonizer) {
+    match skeletonize(image_bytes, len, skeletonizer, |a, b| unsafe {
+        report_progress(a, b)
+    }) {
         Ok(img) => img,
         Err(_) => Buffer {
             data: std::ptr::null_mut::<u8>(),
@@ -110,16 +125,21 @@ pub extern "C" fn improc_petrsu_free(buf: Buffer) {
     }
 }
 
-fn skeletonize<T: Skeletonizer>(
+fn skeletonize<T, F>(
     image_bytes: *const u8,
     len: usize,
     skeletonizer: T,
-) -> Result<Buffer, ImageError> {
+    increment_progress: F,
+) -> Result<Buffer, ImageError>
+where
+    T: Skeletonizer,
+    F: Fn(i32, i32),
+{
     let original_image = get_rgb_image_from_raw_data(image_bytes, len)?;
 
     let mut binary_image = BinaryImage::from_image(&original_image, PixelColor::White);
 
-    skeletonizer.process(&mut binary_image);
+    skeletonizer.process_with_progress(&mut binary_image, increment_progress);
 
     let result_image = binary_image.to_rgb_image();
 
@@ -129,7 +149,7 @@ fn skeletonize<T: Skeletonizer>(
 fn get_rgb_image_from_raw_data(image_bytes: *const u8, len: usize) -> Result<RgbImage, ImageError> {
     let slice = unsafe { std::slice::from_raw_parts(image_bytes, len) };
 
-    Ok(image::load_from_memory(slice)?.to_rgb())
+    Ok(image::load_from_memory(slice)?.to_rgb8())
 }
 
 fn rgb_image_to_raw_buffer(image: RgbImage) -> Buffer {

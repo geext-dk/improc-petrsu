@@ -17,6 +17,7 @@
 use crate::binary_image::BinaryImage;
 use crate::bool_matrix::BoolMatrix;
 use crate::skeletonizers::{is_local_articulation_point, AdjacencyMode, Skeletonizer};
+use std::cmp::max;
 
 #[derive(PartialEq, Eq)]
 pub enum ProcessingSide {
@@ -31,7 +32,13 @@ pub struct RosenfeldSkeletonizer {
 }
 
 impl Skeletonizer for RosenfeldSkeletonizer {
-    fn process(&self, image: &mut BinaryImage) {
+    fn process_with_progress<F>(&self, image: &mut BinaryImage, report_progress: F)
+    where
+        F: Fn(i32, i32),
+    {
+        let mut current_progress = 0;
+        let max_progress = Self::compute_max_progress(image.width(), image.height());
+
         let sides = [
             ProcessingSide::North,
             ProcessingSide::South,
@@ -45,16 +52,26 @@ impl Skeletonizer for RosenfeldSkeletonizer {
                 x += self.process_side(image, side);
             }
 
+            current_progress += 1;
+
+            report_progress(current_progress, max_progress as i32);
+
             if x == 0 {
                 break;
             }
         }
+
+        report_progress(max_progress as i32, max_progress as i32);
     }
 }
 
 impl RosenfeldSkeletonizer {
     pub fn new(mode: AdjacencyMode) -> Self {
         RosenfeldSkeletonizer { mode }
+    }
+
+    fn compute_max_progress(width: usize, height: usize) -> usize {
+        max(width, height) / 2
     }
 
     fn process_side(&self, image: &mut BinaryImage, side: &ProcessingSide) -> usize {

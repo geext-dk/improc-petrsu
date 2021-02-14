@@ -16,11 +16,15 @@
 
 use crate::binary_image::BinaryImage;
 use crate::skeletonizers::Skeletonizer;
+use std::cmp::max;
 
 pub struct ZhangSuenSkeletonizer;
 
 impl Skeletonizer for ZhangSuenSkeletonizer {
-    fn process(&self, image: &mut BinaryImage) {
+    fn process_with_progress<F>(&self, image: &mut BinaryImage, report_progress: F)
+    where
+        F: Fn(i32, i32),
+    {
         let mut outer_image =
             BinaryImage::new(image.width() + 2, image.height() + 2, image.get_bg_color());
         for (x, y) in image.pixels_iter() {
@@ -29,16 +33,25 @@ impl Skeletonizer for ZhangSuenSkeletonizer {
             }
         }
 
+        let max_progress = Self::compute_max_progress(image.width(), image.height());
+        let mut current_progress = 0;
+
         loop {
             let mut pixels_changed = 0;
 
             pixels_changed += ZhangSuenSkeletonizer::step_one(&mut outer_image);
             pixels_changed += ZhangSuenSkeletonizer::step_two(&mut outer_image);
 
+            current_progress += 1;
+
+            report_progress(current_progress, max_progress as i32);
+
             if pixels_changed == 0 {
                 break;
             }
         }
+
+        report_progress(max_progress as i32, max_progress as i32);
 
         for (x, y) in image.pixels_iter() {
             if outer_image.is_fg(x + 1, y + 1) {
@@ -53,6 +66,10 @@ impl Skeletonizer for ZhangSuenSkeletonizer {
 impl ZhangSuenSkeletonizer {
     pub fn new() -> Self {
         ZhangSuenSkeletonizer {}
+    }
+
+    fn compute_max_progress(width: usize, height: usize) -> usize {
+        max(width, height) / 2
     }
 
     fn step<F>(image: &mut BinaryImage, check_around: F) -> u32

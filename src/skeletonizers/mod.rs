@@ -28,7 +28,13 @@ pub enum AdjacencyMode {
 }
 
 pub trait Skeletonizer {
-    fn process(&self, binary_image: &mut BinaryImage);
+    fn process(&self, binary_image: &mut BinaryImage) {
+        self.process_with_progress(binary_image, |_, _| {});
+    }
+
+    fn process_with_progress<F>(&self, binary_image: &mut BinaryImage, report_progress: F)
+    where
+        F: Fn(i32, i32);
 }
 
 fn is_local_articulation_point(
