@@ -22,7 +22,7 @@ build:
     - mv improc_petrsu.$VERSION.nupkg improc_petrsu.nupkg
   artifacts:
     paths:
-      - improc_petrsu.$VERSION.nupkg
+      - improc_petrsu.nupkg
 
 package-nuget:
   stage: publish
