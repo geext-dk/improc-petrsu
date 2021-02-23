@@ -4,11 +4,11 @@ stages:
 
 build:
   stage: build
-  image: rust:alpine
+  image: rust:buster
   only:
     - master
   script:
-    - apk add --no-cache mingw-w64-gcc gawk
+    - apt install -y gcc-mingw-w64
     - VERSION=$(cat Cargo.toml | awk -F'"' '/version/ { print $2 }')
     - cargo install cargo-nuget
     - rustup target add x86_86-pc-windows-gnu
