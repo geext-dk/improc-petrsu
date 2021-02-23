@@ -1,10 +1,11 @@
 [package]
 name = "improc_petrsu"
-version = "0.3.0"
+version = "0.3.2"
 authors = ["Denis Karpovskiy <geext29@gmail.com>"]
 edition = "2018"
 description = "My university project"
 license = "GPL-3.0-or-later"
+repository = "https://gitlab.com/geext/improc-petrsu"
 
 [lib]
 crate-type = ["cdylib"]
